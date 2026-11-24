@@ -6,10 +6,16 @@ Milestones are listed when they are merged.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-24
+
 ### Added
-- M6 (in progress): `lkl_vnet` virtual Ethernet pairs with a NAPI
-  receive path, `lkl_nf` per-namespace netfilter hook, namespace-based
-  networking tests and `tests/lib/nettool.py`.
+- M6 (PR #11): `lkl_vnet`, virtual Ethernet pairs with a NAPI receive
+  path, transmit flow control, carrier that follows the peer, `ethtool`
+  statistics and frames handed across network namespaces; `lkl_nf`, an
+  IPv4 netfilter hook in every network namespace with its own rule,
+  counters and `/proc/net/lkl_nf`; namespace-based networking tests and
+  `tests/lib/nettool.py`.
+- The debug kernel also enables network namespaces and netfilter.
 
 ## [0.5.0] - 2026-11-24
 

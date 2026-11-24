@@ -20,10 +20,10 @@ added from CI logs.
 
 | Kernel | Where | Build | Host tests | QEMU tests | Evidence |
 |---|---|---|---|---|---|
-| 6.8.0-1070-azure | GitHub Actions, Ubuntu 22.04 runner | passed (`-Werror`, W=1, sparse) | passed: M1 106 checks; M2 C suite 17/17 + shell test | not run | CI runs 45386256336 (M1), 45403541128 (M2), 45411395148 (M3) |
-| 7.0.0-1017-azure | GitHub Actions, Ubuntu 24.04 runner | passed (`-Werror`, W=1, sparse) | passed: same | passed under KVM: same | CI runs 45386256336 (M1), 45403541128 (M2), 45411395148 (M3), 45416452233 (M4); M5 in QEMU: 45425305054 |
-| 7.0.0-1014-aws | GitHub Actions, Ubuntu 24.04 runner (an EC2-hosted image) | passed | passed: all suites through M5 | not run | CI run 45425305054 (M5) |
-| 6.12.0 (kernel.org, lockdep + KASAN + kmemleak) | QEMU guest under KVM, built by `scripts/build-debug-kernel.sh` | modules built against it | n/a | passed: all suites, plus the detector demonstrations | CI runs 45416452233 (M4), 45425305054 (M5) |
+| 6.8.0-1070-azure | GitHub Actions, Ubuntu 22.04 runner | passed (`-Werror`, W=1, sparse) | passed: all suites through M6 | not run | CI runs 45386256336 (M1), 45403541128 (M2), 45411395148 (M3), 45416452233 (M4), 45425305054 (M5), 45453186271 (M6) |
+| 7.0.0-1017-azure | GitHub Actions, Ubuntu 24.04 runner; also the QEMU guest kernel | passed (`-Werror`, W=1, sparse) | passed: M1–M4 (the runner image changed before M5) | passed under KVM: all suites through M6 | CI runs 45386256336 (M1), 45403541128 (M2), 45411395148 (M3), 45416452233 (M4); QEMU also 45425305054 (M5), 45453186271 (M6) |
+| 7.0.0-1014-aws | GitHub Actions, Ubuntu 24.04 runner (an EC2-hosted image) | passed | passed: all suites through M6 | not run | CI runs 45425305054 (M5), 45453186271 (M6) |
+| 6.12.0 (kernel.org, lockdep + KASAN + kmemleak) | QEMU guest under KVM, built by `scripts/build-debug-kernel.sh` | modules built against it | n/a | passed: all suites, plus the detector demonstrations | CI runs 45416452233 (M4), 45425305054 (M5), 45453186271 (M6) |
 
 Untested so far: anything below 6.8, including the 6.2 floor. The floor
 follows from the APIs used, not from a test run. A QEMU job booting an
