@@ -41,6 +41,12 @@ add_executable(lklbuf_test tests/drivers/lklbuf_test.c)
 target_include_directories(lklbuf_test PRIVATE tests/lib)
 target_link_libraries(lklbuf_test PRIVATE lklbuf Threads::Threads)
 
+# --- M3: lkl_events ----------------------------------------------------------------
+# Interface test: needs the module loaded; run by tests/drivers/test_lkl_events.sh.
+add_executable(lkl_events_test tests/drivers/lkl_events_test.c)
+target_include_directories(lkl_events_test PRIVATE tests/lib ${LKL_UAPI})
+target_link_libraries(lkl_events_test PRIVATE Threads::Threads)
+
 # --- unit tests (no kernel needed) ------------------------------------------------
 enable_testing()
 add_executable(test_lklbuf_lib tests/unit/test_lklbuf_lib.c)
