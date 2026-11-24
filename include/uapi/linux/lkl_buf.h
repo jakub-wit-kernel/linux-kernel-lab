@@ -39,6 +39,7 @@ struct lklbuf_info {
 	__u32 open_count;	/* open file descriptions right now */
 	__u32 __reserved;
 };
+
 #define LKLBUF_INFO_SIZE_V0	24
 
 /* Input. v0 = offset + length (16 bytes); v1 added `byte` (v0: zero). */
@@ -49,6 +50,7 @@ struct lklbuf_fill {
 	__u8 byte;		/* value to write; v0 callers get 0 */
 	__u8 __pad[7];		/* must be zero */
 };
+
 #define LKLBUF_FILL_SIZE_V0	16
 
 /* Output. Monotonic counters until LKLBUF_IOC_RESET_STATS. */
@@ -60,6 +62,7 @@ struct lklbuf_stats {
 	__u64 seeks;
 	__u64 ioctls;
 };
+
 #define LKLBUF_STATS_SIZE_V0	48
 
 /* Fill a struct lklbuf_info. */

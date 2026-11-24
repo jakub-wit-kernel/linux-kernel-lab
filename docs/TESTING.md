@@ -52,6 +52,20 @@ completed successfully.
 
 Evidence: CI run 45386256336 on PR #1 (`feature/m1-kernel-modules`).
 
+### M2 (PR #3, CI run 45403541128)
+
+| Check | Dev sandbox | Ubuntu 22.04, Linux 6.8 | Ubuntu 24.04, Linux 7.0 | QEMU guest (KVM), Linux 7.0 |
+|---|---|---|---|---|
+| User-space build (gcc, clang, `-Werror`) and library unit tests | passed, also under ASan+UBSan | n/a | passed (gcc, clang, ASan+UBSan) | n/a |
+| Driver build, W=1, sparse | not possible | passed | passed | n/a |
+| checkpatch `--strict` (7 files) | not possible | passed: 0 errors, 0 warnings | passed: same | n/a |
+| C device suite (17 cases) | correctly skips without a device | passed | passed | passed |
+| Torn-read check (concurrent block reads, 0 torn) | not possible | 520,389 reads | 404,480 reads | 313,468 reads |
+| Driver shell test (nodes, sysfs, CLI, dd, rmmod-while-open) | not possible | passed | passed | passed |
+
+checkpatch's three `--strict` CHECK notes (blank lines in the UAPI
+header) were fixed after this run; the fix is in the PR.
+
 Notes:
 - The first CI run (45385836101) passed every module test but failed
   checkpatch and shellcheck. The fixes are in the PR's history:
