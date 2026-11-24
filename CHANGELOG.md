@@ -6,6 +6,11 @@ Milestones are listed when they are merged.
 
 ## [Unreleased]
 
+### Added
+- M6 (in progress): `lkl_vnet` virtual Ethernet pairs with a NAPI
+  receive path, `lkl_nf` per-namespace netfilter hook, namespace-based
+  networking tests and `tests/lib/nettool.py`.
+
 ## [0.5.0] - 2026-11-24
 
 ### Added

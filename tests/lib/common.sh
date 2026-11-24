@@ -77,7 +77,8 @@ require_root() {
 # Path of a built module: ko_path lkl_hello
 ko_path() {
 	local ko
-	ko=$(find "$LKL_ROOT/src" "$LKL_ROOT/drivers" -name "$1.ko" -print -quit)
+	ko=$(find "$LKL_ROOT/src" "$LKL_ROOT/drivers" "$LKL_ROOT/networking" \
+		-name "$1.ko" -print -quit)
 	if [[ -z $ko ]]; then
 		echo "missing $1.ko: run 'make' first" >&2
 		return 1

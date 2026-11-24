@@ -31,7 +31,7 @@ tested kernels.
 | `drivers/` | Character devices, procfs and sysfs | 2 |
 | `src/concurrency/` | Locking, RCU, wait queues, workqueues (M4) | 3 |
 | `src/memory/` | Allocators, `vmalloc`, `mmap` to user space (M5) | 3 |
-| `networking/` | Network devices, namespaces, netfilter | 4 |
+| `networking/` | Virtual Ethernet pairs with NAPI, a per-namespace netfilter hook (M6, in progress) | 4 |
 | `ebpf/` | eBPF and XDP programs | 4 |
 | `benchmarks/` | Performance experiments | 3–5 |
 | `tests/` | Test harness and per-module tests | all |

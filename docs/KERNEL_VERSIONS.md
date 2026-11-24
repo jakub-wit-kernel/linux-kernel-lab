@@ -37,7 +37,8 @@ older kernel would close that gap.
 | kernel headers | building modules | `linux-headers-$(uname -r)` |
 | sparse | `make sparse` | `sparse` |
 | checkpatch.pl | style checks | fetched from upstream at a pinned tag by `scripts/checkpatch.sh --fetch` |
-| Python 3.8+ | `tests/lib/kmsg.py` | `python3` |
+| Python 3.8+ | `tests/lib/kmsg.py`, `tests/lib/nettool.py` | `python3` |
+| ip, ping, ethtool | networking tests (namespaces, traffic, driver counters) | `iproute2`, `iputils-ping`, `ethtool` |
 | shellcheck | script lint | `shellcheck` |
 | QEMU | isolated kernel testing | `qemu-system-x86` |
 | virtme-ng | boots a kernel in QEMU with the host filesystem shared | `pip install virtme-ng` |

@@ -20,13 +20,13 @@ modules:
 w1:
 	$(MAKE) clean
 	$(MAKE) -C $(KDIR) M=$(PWD) W=1 LKL_WERROR=0 modules 2>&1 | tee .w1.log
-	@! grep -E '^($(PWD)/)?(src|drivers)/[^:]+:[0-9]+:[0-9]+: (warning|error)' .w1.log
+	@! grep -E '^($(PWD)/)?(src|drivers|networking)/[^:]+:[0-9]+:[0-9]+: (warning|error)' .w1.log
 
 # C=2 runs sparse on every file; fails on any finding in our sources.
 sparse:
 	$(MAKE) clean
 	$(MAKE) -C $(KDIR) M=$(PWD) C=2 modules 2>&1 | tee .sparse.log
-	@! grep -E '^($(PWD)/)?(src|drivers)/[^:]+:[0-9]+:[0-9]+: (warning|error)' .sparse.log
+	@! grep -E '^($(PWD)/)?(src|drivers|networking)/[^:]+:[0-9]+:[0-9]+: (warning|error)' .sparse.log
 
 checkpatch:
 	scripts/checkpatch.sh
@@ -34,11 +34,11 @@ checkpatch:
 check: w1 sparse checkpatch
 
 modules-list:
-	@find src drivers -name '*.ko' | sort
+	@find src drivers networking -name '*.ko' | sort
 
 clean:
 	-$(MAKE) -C $(KDIR) M=$(PWD) clean 2>/dev/null
 	rm -f .w1.log .sparse.log
-	find src drivers -name '*.ko' -o -name '*.o' -o -name '*.mod' -o -name '*.mod.c' \
+	find src drivers networking -name '*.ko' -o -name '*.o' -o -name '*.mod' -o -name '*.mod.c' \
 		-o -name '.*.cmd' -o -name 'modules.order' | xargs rm -f
 	rm -f Module.symvers modules.order

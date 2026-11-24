@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: kmsg.py unit tests
+      - name: Python helper unit tests (kmsg.py, nettool.py)
         run: python3 -m unittest discover -s tests/lib -v
       - name: User-space build and unit tests (gcc, clang, ASan+UBSan)
         run: |
@@ -32,7 +32,7 @@ jobs:
       - name: shellcheck
         run: |
           sudo apt-get update && sudo apt-get install -y shellcheck
-          shellcheck -x -P SCRIPTDIR scripts/*.sh tests/run_all.sh tests/modules/*.sh tests/drivers/*.sh tests/concurrency/*.sh tests/memory/*.sh tests/debug/*.sh tests/lib/common.sh
+          shellcheck -x -P SCRIPTDIR scripts/*.sh tests/run_all.sh tests/modules/*.sh tests/drivers/*.sh tests/concurrency/*.sh tests/memory/*.sh tests/networking/*.sh tests/debug/*.sh tests/lib/common.sh tests/lib/net.sh
 
   build:
     name: Build and static analysis (${{ matrix.os }})
@@ -85,7 +85,7 @@ jobs:
         run: |
           KCC=$(scripts/kernel-cc.sh)
           sudo apt-get update
-          sudo apt-get install -y "linux-headers-$(uname -r)" "$KCC"
+          sudo apt-get install -y "linux-headers-$(uname -r)" "$KCC" ethtool
           echo "KCC=$KCC" >> "$GITHUB_ENV"
       - run: make CC="$KCC"
       - name: Build user-space tools
@@ -113,7 +113,7 @@ jobs:
         run: |
           KCC=$(scripts/kernel-cc.sh)
           sudo apt-get update
-          sudo apt-get install -y qemu-system-x86 "linux-headers-$(uname -r)" "$KCC"
+          sudo apt-get install -y qemu-system-x86 "linux-headers-$(uname -r)" "$KCC" ethtool
           pipx install virtme-ng
           echo "KCC=$KCC" >> "$GITHUB_ENV"
           sudo chmod 0644 "/boot/vmlinuz-$(uname -r)"
@@ -140,7 +140,7 @@ jobs:
       - name: Install build dependencies, QEMU, virtme-ng
         run: |
           sudo apt-get update
-          sudo apt-get install -y qemu-system-x86 flex bison bc libelf-dev libssl-dev
+          sudo apt-get install -y qemu-system-x86 flex bison bc libelf-dev libssl-dev ethtool
           pipx install virtme-ng
       - name: Restore the debug kernel build
         id: kcache
@@ -152,7 +152,7 @@ jobs:
         if: steps.kcache.outputs.cache-hit != 'true'
         run: scripts/build-debug-kernel.sh "$KVER" kernel
       - name: Show the detector configuration
-        run: grep -E '^CONFIG_(PROVE_LOCKING|KASAN|KASAN_GENERIC|DEBUG_ATOMIC_SLEEP|DEBUG_LIST|DEBUG_KMEMLEAK|DYNAMIC_DEBUG)=' kernel/.config
+        run: grep -E '^CONFIG_(PROVE_LOCKING|KASAN|KASAN_GENERIC|DEBUG_ATOMIC_SLEEP|DEBUG_LIST|DEBUG_KMEMLEAK|DYNAMIC_DEBUG|NET_NS|NETFILTER)=' kernel/.config
       - name: Run all tests, then the detector demonstrations, in the VM
         run: timeout 2400 scripts/qemu-test.sh kernel/arch/x86/boot/bzImage "$PWD/kernel"
         env:
