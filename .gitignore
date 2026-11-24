@@ -13,3 +13,7 @@ Module.symvers
 __pycache__/
 *.pyc
 /out/
+*.log
+.w1.log
+.sparse.log
+.tools/
