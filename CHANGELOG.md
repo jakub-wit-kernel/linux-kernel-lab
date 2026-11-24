@@ -6,6 +6,10 @@ Milestones are listed when they are merged.
 
 ## [Unreleased]
 
+### Added
+- M5 (in progress): `lkl_mem` allocation experiments and the
+  `/dev/lkl_mmap` device; kmemleak and dynamic debug in the debug kernel.
+
 ## [0.4.0] - 2026-11-24
 
 ### Added

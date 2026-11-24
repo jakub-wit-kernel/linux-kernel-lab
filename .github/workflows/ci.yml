@@ -32,7 +32,7 @@ jobs:
       - name: shellcheck
         run: |
           sudo apt-get update && sudo apt-get install -y shellcheck
-          shellcheck -x -P SCRIPTDIR scripts/*.sh tests/run_all.sh tests/modules/*.sh tests/drivers/*.sh tests/concurrency/*.sh tests/debug/*.sh tests/lib/common.sh
+          shellcheck -x -P SCRIPTDIR scripts/*.sh tests/run_all.sh tests/modules/*.sh tests/drivers/*.sh tests/concurrency/*.sh tests/memory/*.sh tests/debug/*.sh tests/lib/common.sh
 
   build:
     name: Build and static analysis (${{ matrix.os }})
@@ -123,7 +123,7 @@ jobs:
           CC: ${{ env.KCC }}
 
   test-debug-kernel:
-    name: Tests on a debug kernel (lockdep + KASAN) in QEMU
+    name: Tests on a debug kernel (lockdep + KASAN + kmemleak) in QEMU
     runs-on: ubuntu-24.04
     timeout-minutes: 75
     env:
@@ -152,9 +152,11 @@ jobs:
         if: steps.kcache.outputs.cache-hit != 'true'
         run: scripts/build-debug-kernel.sh "$KVER" kernel
       - name: Show the detector configuration
-        run: grep -E '^CONFIG_(PROVE_LOCKING|KASAN|KASAN_GENERIC|DEBUG_ATOMIC_SLEEP|DEBUG_LIST)=' kernel/.config
+        run: grep -E '^CONFIG_(PROVE_LOCKING|KASAN|KASAN_GENERIC|DEBUG_ATOMIC_SLEEP|DEBUG_LIST|DEBUG_KMEMLEAK|DYNAMIC_DEBUG)=' kernel/.config
       - name: Run all tests, then the detector demonstrations, in the VM
         run: timeout 2400 scripts/qemu-test.sh kernel/arch/x86/boot/bzImage "$PWD/kernel"
         env:
           LKL_EXPECT_DETECTORS: "1"
           LKL_QEMU_MEM: 2G
+          # More than one KASAN report per boot (M4 and M5 demos).
+          LKL_QEMU_APPEND: kasan_multi_shot

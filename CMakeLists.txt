@@ -47,6 +47,11 @@ add_executable(lkl_events_test tests/drivers/lkl_events_test.c)
 target_include_directories(lkl_events_test PRIVATE tests/lib ${LKL_UAPI})
 target_link_libraries(lkl_events_test PRIVATE Threads::Threads)
 
+# --- M5: lkl_mem ---------------------------------------------------------------------
+# Interface test: needs the module loaded; run by tests/memory/test_lkl_mem.sh.
+add_executable(lkl_mmap_test tests/memory/lkl_mmap_test.c)
+target_include_directories(lkl_mmap_test PRIVATE tests/lib)
+
 # --- unit tests (no kernel needed) ------------------------------------------------
 enable_testing()
 add_executable(test_lklbuf_lib tests/unit/test_lklbuf_lib.c)
