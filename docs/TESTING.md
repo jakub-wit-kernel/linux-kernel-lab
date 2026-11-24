@@ -54,6 +54,11 @@ Evidence: CI run 45386256336 on PR #1 (`feature/m1-kernel-modules`).
 
 ### M2 (PR #3, CI run 45403541128)
 
+The "Linux 7.0" columns of the M2–M4 tables are not one kernel. In these
+runs the 24.04 host-test jobs and the QEMU guest ran 7.0.0-1014-aws, and
+the 24.04 build job used 7.0.0-1017-azure (M2) or 7.0.0-1014-aws (M3,
+M4). See docs/KERNEL_VERSIONS.md.
+
 | Check | Dev sandbox | Ubuntu 22.04, Linux 6.8 | Ubuntu 24.04, Linux 7.0 | QEMU guest (KVM), Linux 7.0 |
 |---|---|---|---|---|
 | User-space build (gcc, clang, `-Werror`) and library unit tests | passed, also under ASan+UBSan | n/a | passed (gcc, clang, ASan+UBSan) | n/a |
@@ -147,9 +152,11 @@ Notes:
 - kmemleak reported 4 of the 8 leaked objects. The others were still
   referenced from somewhere kmemleak scans when it looked (for example
   a stale stack slot); the test requires at least one.
-- The 24.04 runner image changed between M4 and M5, from
-  `7.0.0-1017-azure` to `7.0.0-1014-aws`. Both are recorded in
-  docs/KERNEL_VERSIONS.md.
+- Correction, made during M6: this note used to say the 24.04 runner
+  image changed between M4 and M5. It did not. GitHub assigns
+  `ubuntu-24.04` jobs to more than one image (`7.0.0-1017-azure` and
+  `7.0.0-1014-aws`), job by job. docs/KERNEL_VERSIONS.md lists which job
+  ran which kernel in every milestone run.
 
 ### M6 (PR #11, CI run 45453186271)
 
