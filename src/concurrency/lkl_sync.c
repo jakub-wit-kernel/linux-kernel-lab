@@ -305,8 +305,17 @@ static int rcu_reader(struct exp *e)
 		rcu_read_lock();
 		c = rcu_dereference(e->cfg);
 		/* Read twice: a freed or half-updated object breaks this. */
-		if (READ_ONCE(c->a) + READ_ONCE(c->b) != RCU_SUM ||
-		    READ_ONCE(c->a) + READ_ONCE(c->b) != RCU_SUM)
+		if (READ_ONCE(c->a) + READ_ONCE(c->b) != RCU_SUM)
+			atomic_inc(&e->violations);
+		/*
+		 * In the use-after-free demo, hold the old pointer long enough
+		 * for the writer to free it: the bug then shows up on every
+		 * run, not only when the scheduler happens to line it up.
+		 * (Busy-waiting is allowed in an RCU read-side section.)
+		 */
+		if (e->rcu_bug)
+			udelay(50);
+		if (READ_ONCE(c->a) + READ_ONCE(c->b) != RCU_SUM)
 			atomic_inc(&e->violations);
 		rcu_read_unlock();
 		atomic64_inc(&e->reads);
