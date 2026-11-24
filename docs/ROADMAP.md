@@ -32,7 +32,7 @@ Status values: *Planned* · *In progress* · *Completed (date, PR)*.
 
 | Milestone | Scope | Status |
 |---|---|---|
-| M6 | A virtual Ethernet pair driver (`net_device_ops`, NAPI receive, flow control, `ethtool` statistics, `sk_buff` handoff across network namespaces) and a per-namespace netfilter hook (`pernet_operations`, per-namespace procfs). All traffic tests run between network namespaces. | *In progress* |
+| M6 | A virtual Ethernet pair driver (`net_device_ops`, NAPI receive, flow control, `ethtool` statistics, `sk_buff` handoff across network namespaces) and a per-namespace netfilter hook (`pernet_operations`, per-namespace procfs). All traffic tests run between network namespaces. | *Completed (2026-11-24, PR #11)* |
 | M7 | eBPF with libbpf and CO-RE: XDP packet filtering and counting, tc and tracepoint programs, BPF maps for kernel/user communication, an XDP benchmark using veth pairs in namespaces. | *Planned* |
 
 ## Stage 5: Advanced optimization and production-quality testing

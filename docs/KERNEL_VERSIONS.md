@@ -18,12 +18,17 @@ wrong on distribution kernels that backport APIs:
 Only kernels that a passing test run has used are listed. Entries are
 added from CI logs.
 
-| Kernel | Where | Build | Host tests | QEMU tests | Evidence |
+| Kernel | Where | Build (`-Werror`; W=1 and sparse in the build jobs) | Host tests | QEMU tests (KVM) | Evidence (CI runs) |
 |---|---|---|---|---|---|
-| 6.8.0-1070-azure | GitHub Actions, Ubuntu 22.04 runner | passed (`-Werror`, W=1, sparse) | passed: M1 106 checks; M2 C suite 17/17 + shell test | not run | CI runs 45386256336 (M1), 45403541128 (M2), 45411395148 (M3) |
-| 7.0.0-1017-azure | GitHub Actions, Ubuntu 24.04 runner | passed (`-Werror`, W=1, sparse) | passed: same | passed under KVM: same | CI runs 45386256336 (M1), 45403541128 (M2), 45411395148 (M3), 45416452233 (M4); M5 in QEMU: 45425305054 |
-| 7.0.0-1014-aws | GitHub Actions, Ubuntu 24.04 runner (an EC2-hosted image) | passed | passed: all suites through M5 | not run | CI run 45425305054 (M5) |
-| 6.12.0 (kernel.org, lockdep + KASAN + kmemleak) | QEMU guest under KVM, built by `scripts/build-debug-kernel.sh` | modules built against it | n/a | passed: all suites, plus the detector demonstrations | CI runs 45416452233 (M4), 45425305054 (M5) |
+| 6.8.0-1070-azure | Ubuntu 22.04 runner | passed in every run, M1–M6 | passed: every suite, M1–M6 | not run | 45386256336 (M1), 45403541128 (M2), 45411395148 (M3), 45416452233 (M4), 45425305054 (M5), 45453186271 (M6) |
+| 7.0.0-1017-azure | Ubuntu 24.04 runner image, and the guest kernel booted from it | passed: M1, M2, M5 build jobs | passed: M1 | passed: M1, M5, M6 | host 45386256336; build 45403541128, 45425305054; QEMU 45386256336, 45425305054, 45453186271 |
+| 7.0.0-1014-aws | Ubuntu 24.04 runner image, and the guest kernel booted from it | passed: M3, M4, M6 build jobs, and every host test job below | passed: M2–M6 | passed: M2–M4 | host 45403541128, 45411395148, 45416452233, 45425305054, 45453186271; QEMU 45403541128, 45411395148, 45416452233 |
+| 6.12.0 (kernel.org, lockdep + KASAN + kmemleak) | QEMU guest, built by `scripts/build-debug-kernel.sh` | modules built against it | n/a | passed: every suite plus the detector demonstrations, M4–M6 | 45416452233 (M4), 45425305054 (M5), 45453186271 (M6) |
+
+GitHub runs `ubuntu-24.04` jobs on more than one runner image, so jobs in
+the same CI run can get different 7.0 kernels. Each test log starts with
+`# kernel <release>`. The tables in [TESTING.md](TESTING.md) name the
+kernel each job actually ran, where it was checked.
 
 Untested so far: anything below 6.8, including the 6.2 floor. The floor
 follows from the APIs used, not from a test run. A QEMU job booting an

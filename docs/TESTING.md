@@ -54,6 +54,11 @@ Evidence: CI run 45386256336 on PR #1 (`feature/m1-kernel-modules`).
 
 ### M2 (PR #3, CI run 45403541128)
 
+The "Linux 7.0" columns of the M2–M4 tables are not one kernel. In these
+runs the 24.04 host-test jobs and the QEMU guest ran 7.0.0-1014-aws, and
+the 24.04 build job used 7.0.0-1017-azure (M2) or 7.0.0-1014-aws (M3,
+M4). See docs/KERNEL_VERSIONS.md.
+
 | Check | Dev sandbox | Ubuntu 22.04, Linux 6.8 | Ubuntu 24.04, Linux 7.0 | QEMU guest (KVM), Linux 7.0 |
 |---|---|---|---|---|
 | User-space build (gcc, clang, `-Werror`) and library unit tests | passed, also under ASan+UBSan | n/a | passed (gcc, clang, ASan+UBSan) | n/a |
@@ -147,6 +152,38 @@ Notes:
 - kmemleak reported 4 of the 8 leaked objects. The others were still
   referenced from somewhere kmemleak scans when it looked (for example
   a stale stack slot); the test requires at least one.
-- The 24.04 runner image changed between M4 and M5, from
-  `7.0.0-1017-azure` to `7.0.0-1014-aws`. Both are recorded in
-  docs/KERNEL_VERSIONS.md.
+- Correction, made during M6: this note used to say the 24.04 runner
+  image changed between M4 and M5. It did not. GitHub assigns
+  `ubuntu-24.04` jobs to more than one image (`7.0.0-1017-azure` and
+  `7.0.0-1014-aws`), job by job. docs/KERNEL_VERSIONS.md lists which job
+  ran which kernel in every milestone run.
+
+### M6 (PR #11, CI run 45453186271)
+
+The debug kernel now also enables `NET_NS` and `NETFILTER`; the CI log
+shows both set to `y`. All traffic runs between two network namespaces
+over an `lkl_vnet` pair (`10.99.0.1` ↔ `10.99.0.2`).
+
+| Check | Dev sandbox | Ubuntu 22.04, Linux 6.8.0-1070-azure | Ubuntu 24.04, Linux 7.0.0-1014-aws | QEMU (KVM), Linux 7.0.0-1017-azure | QEMU (KVM), Linux 6.12 debug |
+|---|---|---|---|---|---|
+| `lkl_vnet`, `lkl_nf` build, W=1, sparse | not possible | passed | passed | n/a | built against the debug tree |
+| checkpatch `--strict` (13 files) | not possible | 0 errors, 0 warnings, 6 checks (long format strings) | same | n/a | n/a |
+| `nettool.py` unit tests (UDP and TCP over loopback) | passed | n/a | passed | n/a | n/a |
+| `test_lkl_vnet` (51 checks) | not possible | passed | passed | passed | passed, no lockdep/KASAN reports |
+| UDP flood: datagrams received of 50,000 sent | not possible | 50,000 | 50,000 | 50,000 | 50,000 |
+| TCP: 32 MiB with matching SHA-256 | not possible | passed | passed | passed | passed |
+| Flow control (`rx_ring=16`): sender queue stops / wakes | not possible | 1,023 / 1,023 | 1,022 / 1,022 | 1,022 / 1,022 | 1,022 / 1,022 |
+| Per-direction accounting identity after every phase | not possible | held | held | held | held |
+| `test_lkl_nf` (36 checks: drops, per-namespace isolation, validation, new namespaces, unload with a rule active) | not possible | passed | passed | passed | passed |
+| All earlier suites (M1–M5) and both detector tests | | passed (detector tests skipped) | passed (skipped) | passed (skipped) | passed, both reports required and seen |
+
+Notes:
+- The first run (45448471995) passed every test job but failed
+  shellcheck. It flagged a variable defined for sourcing scripts and a
+  function called only through `check`. Both now have a targeted
+  `disable` with a comment.
+- `napi_budget_exhausted` stayed 0 everywhere. That is expected with
+  `rx_ring=16`: a poll can find at most 16 frames, and the budget is 64.
+  The counter can only move with `rx_ring` above 64.
+- One frame was counted as `rx_dropped` in every run. It is the
+  4000-byte ping in the MTU test, also seen in `rx_dropped_mtu`.
