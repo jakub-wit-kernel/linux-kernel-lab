@@ -26,7 +26,7 @@ if [[ -n ${LKL_EXPECT_VM:-} && $vendor != QEMU ]]; then
 	echo "run_all.sh: expected to run under QEMU, platform is '$vendor'" >&2
 	exit 1
 fi
-for t in tests/modules/test_*.sh; do
+for t in tests/modules/test_*.sh tests/drivers/test_*.sh; do
 	name=$(basename "$t" .sh)
 	[[ -n $filter && $name != *"$filter"* ]] && continue
 	ran=$((ran + 1))
