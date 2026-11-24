@@ -18,7 +18,7 @@ Status values: *Planned* · *In progress* · *Completed (date, PR)*.
 
 | Milestone | Scope | Status |
 |---|---|---|
-| M2 | Character device: dynamic major/minor, `cdev`, `class`/`device`, read/write with `copy_*_user`, `llseek`, ioctl with a versioned UAPI header, a user-space library and CLI. (The standalone `kmsgq` project already covers a message-queue driver; M2 focuses on a seekable, buffer-backed device and the UAPI and versioning discipline.) | *In progress* |
+| M2 | Character device: dynamic major/minor, `cdev`, `class`/`device`, read/write with `copy_*_user`, `llseek`, ioctl with a versioned UAPI header, a user-space library and CLI. (The standalone `kmsgq` project already covers a message-queue driver; M2 focuses on a seekable, buffer-backed device and the UAPI and versioning discipline.) | *Completed (2026-11-24, PR #3)* |
 | M3 | procfs (`seq_file`, `proc_ops`) and sysfs (attribute groups, `kobject`, binary attributes, `sysfs_notify` + poll), plus debugfs for diagnostics. | *Planned* |
 
 ## Stage 3: Concurrency, memory management, performance

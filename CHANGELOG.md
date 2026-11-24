@@ -6,8 +6,10 @@ Milestones are listed when they are merged.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-24
+
 ### Added
-- M2 (in review): `lkl_buf` seekable buffer character device with
+- M2 (PR #3): `lkl_buf` seekable buffer character device with
   extensible, versioned ioctl structs; `liblklbuf` and the `lklbuf` CLI
   (CMake); a C device test suite including torn-read and concurrent
   writer checks; library unit tests that run without a kernel.
