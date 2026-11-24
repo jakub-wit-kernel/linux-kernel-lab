@@ -20,8 +20,8 @@ added from CI logs.
 
 | Kernel | Where | Build | Host tests | QEMU tests | Evidence |
 |---|---|---|---|---|---|
-| 6.8.0-1070-azure | GitHub Actions, Ubuntu 22.04 runner | passed (`-Werror`, W=1, sparse) | passed: M1 106 checks; M2 C suite 17/17 + shell test | not run | CI runs 45386256336 (M1), 45403541128 (M2) |
-| 7.0.0-1017-azure | GitHub Actions, Ubuntu 24.04 runner | passed (`-Werror`, W=1, sparse) | passed: same | passed under KVM: same | CI runs 45386256336 (M1), 45403541128 (M2) |
+| 6.8.0-1070-azure | GitHub Actions, Ubuntu 22.04 runner | passed (`-Werror`, W=1, sparse) | passed: M1 106 checks; M2 C suite 17/17 + shell test | not run | CI runs 45386256336 (M1), 45403541128 (M2), 45411395148 (M3) |
+| 7.0.0-1017-azure | GitHub Actions, Ubuntu 24.04 runner | passed (`-Werror`, W=1, sparse) | passed: same | passed under KVM: same | CI runs 45386256336 (M1), 45403541128 (M2), 45411395148 (M3) |
 
 Untested so far: anything below 6.8, including the 6.2 floor. The floor
 follows from the APIs used, not from a test run. A QEMU job booting an
