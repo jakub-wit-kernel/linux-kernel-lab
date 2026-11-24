@@ -523,7 +523,7 @@ static int run_experiment(const char *name, unsigned int nthreads,
 		return iters > MAX_WORK_ITEMS ? -EINVAL :
 					       run_workqueue(iters, res, len);
 
-	e = kzalloc(sizeof(struct exp), GFP_KERNEL);
+	e = kzalloc(sizeof(*e), GFP_KERNEL);
 	if (!e)
 		return -ENOMEM;
 	e->name = name;
