@@ -23,6 +23,7 @@ check "load logged" kmsg_expect "$m" "^$M: loaded"
 
 # nfstat NS NAME: a field of NS's /proc/net/lkl_nf
 nfstat() { kv "$2" "$(nsx "$1" cat /proc/net/lkl_nf)"; }
+# shellcheck disable=SC2317 # only called through check/check_fails
 nfset() { nsx "$1" bash -c "echo '$2' > /proc/net/lkl_nf"; }
 
 # udp_count FROM TO IP PORT N: send N datagrams from namespace FROM to

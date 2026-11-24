@@ -10,6 +10,7 @@ NS1=lkl_ns1
 NS2=lkl_ns2
 IP0=10.99.0.1
 IP1=10.99.0.2
+# shellcheck disable=SC2034 # used by the scripts that source this file
 NETTOOL=(python3 "$LKL_ROOT/tests/lib/nettool.py")
 
 net_preflight() {
