@@ -47,8 +47,19 @@ jobs:
         run: make w1 CC="$KCC"
       - name: sparse
         run: make sparse CC="$KCC"
+      # Fetch the pinned checkpatch.pl once and reuse it: unauthenticated
+      # downloads from raw.githubusercontent.com get rate-limited (HTTP 429).
+      - name: Cache checkpatch (pinned tag)
+        id: cp-cache
+        uses: actions/cache@v4
+        with:
+          path: .tools
+          key: checkpatch-v6.12
+      - name: Fetch checkpatch
+        if: steps.cp-cache.outputs.cache-hit != 'true'
+        run: scripts/checkpatch.sh --fetch
       - name: checkpatch (upstream, pinned tag)
-        run: scripts/checkpatch.sh --fetch && scripts/checkpatch.sh
+        run: scripts/checkpatch.sh
 
   test-host:
     name: Module tests on runner kernel (${{ matrix.os }})

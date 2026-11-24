@@ -19,7 +19,9 @@ BASE="https://raw.githubusercontent.com/torvalds/linux/$TAG/scripts"
 if [[ ${1:-} == --fetch ]]; then
 	mkdir -p .tools
 	for f in checkpatch.pl spelling.txt const_structs.checkpatch; do
-		curl -fsSL "$BASE/$f" -o ".tools/$f"
+		# Retry transient failures, including HTTP 429 rate limiting.
+		curl -fsSL --retry 6 --retry-delay 10 --retry-all-errors \
+			"$BASE/$f" -o ".tools/$f"
 	done
 	chmod +x .tools/checkpatch.pl
 	echo "checkpatch: fetched $TAG into .tools/"
