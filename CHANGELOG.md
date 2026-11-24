@@ -6,8 +6,10 @@ Milestones are listed when they are merged.
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-11-24
+
 ### Added
-- M1 (in review): kernel module fundamentals. Four modules (`lkl_hello`,
+- M1 (PR #1): kernel module fundamentals. Four modules (`lkl_hello`,
   `lkl_params`, `lkl_logging`, `lkl_lifecycle`), a compatibility header
   for 6.2/6.16 API changes, a TAP test harness with structured
   `/dev/kmsg` assertions (`tests/lib/kmsg.py`), QEMU testing via

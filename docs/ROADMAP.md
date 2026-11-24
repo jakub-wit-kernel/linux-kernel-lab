@@ -12,7 +12,7 @@ Status values: *Planned* · *In progress* · *Completed (date, PR)*.
 
 | Milestone | Scope | Status |
 |---|---|---|
-| **M1** | Basic module; module parameters (standard types, arrays, validated custom `kernel_param_ops`); kernel logging (levels, `pr_fmt`, rate limiting, `printk_once`, hex dumps, dynamic debug); init/cleanup with ordered unwinding and failure injection. Plus the repository foundation: Kbuild tree, test harness, QEMU testing via virtme-ng, checkpatch/sparse/W=1, GitHub Actions. | *In progress* |
+| **M1** | Basic module; module parameters (standard types, arrays, validated custom `kernel_param_ops`); kernel logging (levels, `pr_fmt`, rate limiting, `printk_once`, hex dumps, dynamic debug); init/cleanup with ordered unwinding and failure injection. Plus the repository foundation: Kbuild tree, test harness, QEMU testing via virtme-ng, checkpatch/sparse/W=1, GitHub Actions. | *Completed (2026-11-24, PR #1)* |
 
 ## Stage 2: Character drivers and kernel interfaces
 
