@@ -19,7 +19,7 @@ Status values: *Planned* · *In progress* · *Completed (date, PR)*.
 | Milestone | Scope | Status |
 |---|---|---|
 | M2 | Character device: dynamic major/minor, `cdev`, `class`/`device`, read/write with `copy_*_user`, `llseek`, ioctl with a versioned UAPI header, a user-space library and CLI. (The standalone `kmsgq` project already covers a message-queue driver; M2 focuses on a seekable, buffer-backed device and the UAPI and versioning discipline.) | *Completed (2026-11-24, PR #3)* |
-| M3 | procfs (`seq_file`, `proc_ops`, a binary snapshot), sysfs (attribute groups, `kobject`, `is_visible`, `sysfs_notify` + poll), plus debugfs for diagnostics. sysfs binary attributes were left out on purpose: their API changed repeatedly between 6.13 and 6.16, and procfs provides the binary interface instead. | *In progress* |
+| M3 | procfs (`seq_file`, `proc_ops`, a binary snapshot), sysfs (attribute groups, `kobject`, `is_visible`, `sysfs_notify` + poll), plus debugfs for diagnostics. sysfs binary attributes were left out on purpose: their API changed repeatedly between 6.13 and 6.16, and procfs provides the binary interface instead. | *Completed (2026-11-24, PR #5)* |
 
 ## Stage 3: Concurrency, memory management, performance
 
