@@ -9,6 +9,19 @@ and inside QEMU.
 for each milestone's status. Only milestones marked *Completed* there
 are claimed as done.
 
+## Quick start
+
+```bash
+make                                  # build all modules for the running kernel
+sudo tests/run_all.sh                 # load each module and run its tests
+scripts/qemu-test.sh                  # the same tests inside a QEMU VM
+python3 -m unittest discover -s tests/lib
+```
+
+See [docs/TESTING.md](docs/TESTING.md) for what each check covers and
+[docs/KERNEL_VERSIONS.md](docs/KERNEL_VERSIONS.md) for supported and
+tested kernels.
+
 ## Layout
 
 | Path | Contents | Stage |
