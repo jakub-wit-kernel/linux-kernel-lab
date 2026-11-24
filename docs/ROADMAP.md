@@ -26,7 +26,7 @@ Status values: *Planned* · *In progress* · *Completed (date, PR)*.
 | Milestone | Scope | Status |
 |---|---|---|
 | M4 | Spinlocks (incl. softirq-safe use with a timer), mutexes, atomics, RCU (publish, read, deferred free), wait queues, workqueues and delayed work, kthreads. Tested in QEMU under a kernel built with lockdep, `DEBUG_ATOMIC_SLEEP` and KASAN, with deliberate bugs proving the detectors fire. KCSAN (cannot be combined with KASAN) and `refcount_t` are not part of M4. | *Completed (2026-11-24, PR #7)* |
-| M5 | `kmalloc`/`kfree`, `vmalloc`, slab caches (`kmem_cache`), page allocation (`alloc_pages`), `mmap` of kernel memory to user space, memory accounting and leak checks with kmemleak. | *Planned* |
+| M5 | `kmalloc` size classes and alignment, slab caches (`kmem_cache`) with constructors, page allocation (`alloc_pages`), `vmalloc`, `mmap` of kernel memory to user space through a fault handler; leak and out-of-bounds detection with kmemleak and KASAN on the debug kernel. | *In progress* |
 
 ## Stage 4: Networking, eBPF and XDP
 

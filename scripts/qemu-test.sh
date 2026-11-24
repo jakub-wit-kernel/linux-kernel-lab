@@ -39,6 +39,7 @@ echo "qemu-test: booting $KIMG with $kvm_note"
 # LKL_EXPECT_VM makes run_all.sh verify it really runs under QEMU.
 # LKL_EXPECT_DETECTORS (debug-kernel CI) makes the detector test fail
 # instead of skipping if lockdep or KASAN turn out to be missing.
-vng --run "$KIMG" --user root --cpus 2 --memory "${LKL_QEMU_MEM:-1G}" \
+# LKL_QEMU_APPEND: extra kernel command line (e.g. kasan_multi_shot).
+vng --run "$KIMG" ${LKL_QEMU_APPEND:+--append "$LKL_QEMU_APPEND"} --user root --cpus 2 --memory "${LKL_QEMU_MEM:-1G}" \
 	--rwdir "$PWD" \
 	--exec "cd '$PWD' && LKL_EXPECT_VM=1 LKL_EXPECT_DETECTORS=${LKL_EXPECT_DETECTORS:-} tests/run_all.sh"

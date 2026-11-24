@@ -29,7 +29,8 @@ fi
 # tests/debug/ runs last: its detector demonstrations disable lockdep
 # and taint the kernel for anything that would come after.
 for t in tests/modules/test_*.sh tests/drivers/test_*.sh \
-	 tests/concurrency/test_*.sh tests/debug/test_*.sh; do
+	 tests/concurrency/test_*.sh tests/memory/test_*.sh \
+	 tests/debug/test_*.sh; do
 	name=$(basename "$t" .sh)
 	[[ -n $filter && $name != *"$filter"* ]] && continue
 	ran=$((ran + 1))
