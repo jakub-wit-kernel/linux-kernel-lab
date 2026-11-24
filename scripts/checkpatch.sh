@@ -38,7 +38,7 @@ if [[ -z $cp || ! -x $cp ]]; then
 fi
 
 # Tracked sources only: never the build's generated *.mod.c files.
-mapfile -t files < <(git ls-files 'src/*.[ch]' 'drivers/*.[ch]' 'include/*.h' | grep -v '/user/')
+mapfile -t files < <(git ls-files 'src/*.[ch]' 'drivers/*.[ch]' 'networking/*.[ch]' 'include/*.h' | grep -v '/user/')
 # ALLOC_WITH_SIZEOF (checkpatch from 7.0 on) asks for kzalloc_obj() and
 # friends, which do not exist on the 6.x kernels this lab supports.
 out=$("$cp" --no-tree --strict --terse --show-types \
