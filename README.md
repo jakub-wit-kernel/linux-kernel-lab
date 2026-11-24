@@ -13,6 +13,7 @@ are claimed as done.
 
 ```bash
 make                                  # build all modules for the running kernel
+cmake -S . -B build && cmake --build build   # user-space libraries, CLIs, tests
 sudo tests/run_all.sh                 # load each module and run its tests
 scripts/qemu-test.sh                  # the same tests inside a QEMU VM
 python3 -m unittest discover -s tests/lib

@@ -5,12 +5,13 @@
 | Layer | Command | Needs |
 |---|---|---|
 | Test-tool unit tests | `python3 -m unittest discover -s tests/lib` | Python 3.8+ only |
+| User-space build and unit tests | `cmake -S . -B build && cmake --build build && (cd build && ctest)` | CMake, a C compiler |
 | Shell lint | `shellcheck scripts/*.sh tests/*.sh tests/*/*.sh` | shellcheck |
 | Build | `make` (warnings are errors) | headers for the target kernel |
 | Extra warnings | `make w1` | as above |
 | sparse | `make sparse` | sparse |
 | Coding style | `scripts/checkpatch.sh --fetch && scripts/checkpatch.sh` | network once (fetches upstream `checkpatch.pl` at a pinned tag) |
-| Module tests, host kernel | `sudo tests/run_all.sh` | root, modules built for the running kernel |
+| Module and driver tests, host kernel | `sudo tests/run_all.sh` | root, modules built for the running kernel, user-space tools built (`build/`) |
 | Module tests, QEMU | `scripts/qemu-test.sh` | qemu-system-x86, virtme-ng, readable kernel image; KVM optional |
 
 ## How module tests work
