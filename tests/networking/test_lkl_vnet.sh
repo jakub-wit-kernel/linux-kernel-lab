@@ -25,9 +25,9 @@ must_load $M rx_ring=16
 check "load logged" kmsg_expect "$m" "^$M: loaded: 1 pair\(s\), rx_ring 16, $D0\.\.$D1$"
 
 # --- the pair ----------------------------------------------------------------------------
-check "$D0 exists" ip link show $D0
-check "$D1 exists" ip link show $D1
-check_fails "exactly one pair" ip link show lklvnet2
+check "$D0 exists" test -e /sys/class/net/$D0
+check "$D1 exists" test -e /sys/class/net/$D1
+check_fails "exactly one pair" test -e /sys/class/net/lklvnet2
 check_eq "ethtool names the driver" "driver: $M" "$(ethtool -i $D0 | head -n 1)"
 check_eq "$D0's peer is $D1" "$(cat /sys/class/net/$D1/ifindex)" "$(ethstat - $D0 peer_ifindex)"
 check_eq "$D1's peer is $D0" "$(cat /sys/class/net/$D0/ifindex)" "$(ethstat - $D1 peer_ifindex)"
@@ -45,7 +45,7 @@ ip link set $D0 down
 
 # --- traffic between two namespaces ----------------------------------------------------
 check "pair moved into $NS0/$NS1 and configured" pair_into_ns $D0 $D1
-check_fails "$D0 left the initial namespace" ip link show $D0
+check_fails "$D0 left the initial namespace" test -e /sys/class/net/$D0
 check "ping $IP1 from $NS0" nsx $NS0 ping -c 3 -i 0.2 -W 2 $IP1
 sleep 0.3
 check "accounting $D0 -> $D1" flow_ok $NS0 $D0 $NS1 $D1
@@ -114,7 +114,7 @@ ns_prepare $NS2
 ip link set $D1 netns $NS2
 check "rmmod with $D1 inside $NS2" rmmod $M
 check_fails "$D1 is gone from $NS2" nsx $NS2 ip link show $D1
-check_fails "$D0 is gone" ip link show $D0
+check_fails "$D0 is gone" test -e /sys/class/net/$D0
 ip netns del $NS2
 
 # --- parameters ------------------------------------------------------------------------
