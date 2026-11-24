@@ -39,7 +39,10 @@ fi
 
 # Tracked sources only: never the build's generated *.mod.c files.
 mapfile -t files < <(git ls-files 'src/*.[ch]' 'drivers/*.[ch]' 'include/*.h' | grep -v '/user/')
-out=$("$cp" --no-tree --strict --terse --show-types -f "${files[@]}" || true)
+# ALLOC_WITH_SIZEOF (checkpatch from 7.0 on) asks for kzalloc_obj() and
+# friends, which do not exist on the 6.x kernels this lab supports.
+out=$("$cp" --no-tree --strict --terse --show-types \
+	--ignore ALLOC_WITH_SIZEOF -f "${files[@]}" || true)
 echo "$out"
 errors=$(grep -c ': ERROR:' <<<"$out" || true)
 warnings=$(grep -c ': WARNING:' <<<"$out" || true)

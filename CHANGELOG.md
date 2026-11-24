@@ -6,6 +6,11 @@ Milestones are listed when they are merged.
 
 ## [Unreleased]
 
+### Added
+- M4 (in progress): `lkl_sync` concurrency experiments driven from
+  sysfs; `scripts/build-debug-kernel.sh` and a CI job that runs the
+  whole suite on a lockdep + KASAN kernel in QEMU.
+
 ## [0.3.0] - 2026-11-24
 
 ### Added

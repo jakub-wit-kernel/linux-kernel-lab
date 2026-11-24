@@ -15,6 +15,9 @@ obj-m += drivers/chardev/
 # Stage 2 / M3: procfs, sysfs, debugfs
 obj-m += drivers/events/
 
+# Stage 3 / M4: concurrency
+obj-m += src/concurrency/
+
 # Warnings are errors unless LKL_WERROR=0 (used for exploratory W=1 builds).
 LKL_WERROR ?= 1
 ifeq ($(LKL_WERROR),1)

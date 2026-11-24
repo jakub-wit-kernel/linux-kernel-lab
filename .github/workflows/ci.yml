@@ -32,7 +32,7 @@ jobs:
       - name: shellcheck
         run: |
           sudo apt-get update && sudo apt-get install -y shellcheck
-          shellcheck -x -P SCRIPTDIR scripts/*.sh tests/run_all.sh tests/modules/*.sh tests/drivers/*.sh tests/lib/common.sh
+          shellcheck -x -P SCRIPTDIR scripts/*.sh tests/run_all.sh tests/modules/*.sh tests/drivers/*.sh tests/concurrency/*.sh tests/debug/*.sh tests/lib/common.sh
 
   build:
     name: Build and static analysis (${{ matrix.os }})
@@ -121,3 +121,40 @@ jobs:
         run: timeout 1500 scripts/qemu-test.sh
         env:
           CC: ${{ env.KCC }}
+
+  test-debug-kernel:
+    name: Tests on a debug kernel (lockdep + KASAN) in QEMU
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    env:
+      KVER: "6.12"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enable KVM for the runner user
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' |
+            sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          ls -l /dev/kvm || echo "no /dev/kvm: QEMU will use software emulation"
+      - name: Install build dependencies, QEMU, virtme-ng
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86 flex bison bc libelf-dev libssl-dev
+          pipx install virtme-ng
+      - name: Restore the debug kernel build
+        id: kcache
+        uses: actions/cache@v4
+        with:
+          path: kernel
+          key: debug-kernel-${{ env.KVER }}-${{ hashFiles('scripts/build-debug-kernel.sh') }}
+      - name: Build the debug kernel (cache miss only)
+        if: steps.kcache.outputs.cache-hit != 'true'
+        run: scripts/build-debug-kernel.sh "$KVER" kernel
+      - name: Show the detector configuration
+        run: grep -E '^CONFIG_(PROVE_LOCKING|KASAN|KASAN_GENERIC|DEBUG_ATOMIC_SLEEP|DEBUG_LIST)=' kernel/.config
+      - name: Run all tests, then the detector demonstrations, in the VM
+        run: timeout 2400 scripts/qemu-test.sh kernel/arch/x86/boot/bzImage "$PWD/kernel"
+        env:
+          LKL_EXPECT_DETECTORS: "1"
+          LKL_QEMU_MEM: 2G
