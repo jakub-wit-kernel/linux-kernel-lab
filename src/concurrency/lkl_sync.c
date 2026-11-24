@@ -94,7 +94,7 @@ struct exp {
 	/* atomic / racy / mutex */
 	atomic64_t acounter;
 	unsigned long racy;
-	struct mutex mtx;
+	struct mutex mtx;		/* the lock under test in "mutex" */
 	atomic_t inside;
 	atomic_t violations;
 
@@ -523,7 +523,7 @@ static int run_experiment(const char *name, unsigned int nthreads,
 		return iters > MAX_WORK_ITEMS ? -EINVAL :
 					       run_workqueue(iters, res, len);
 
-	e = kzalloc(sizeof(*e), GFP_KERNEL);
+	e = kzalloc(sizeof(struct exp), GFP_KERNEL);
 	if (!e)
 		return -ENOMEM;
 	e->name = name;
@@ -707,8 +707,10 @@ static int __init lkl_sync_init(void)
 	return 0;
 }
 
-/* A running experiment holds a sysfs active reference, so removing the
- * group below waits for it to finish. */
+/*
+ * A running experiment holds a sysfs active reference, so removing the
+ * group below waits for it to finish.
+ */
 static void __exit lkl_sync_exit(void)
 {
 	sysfs_remove_group(sync_kobj, &sync_group);
