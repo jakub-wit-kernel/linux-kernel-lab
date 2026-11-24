@@ -23,14 +23,15 @@ and unloads it.
   `DEFINE_RATELIMIT_STATE` keeps other kernel activity from consuming the
   budget, which is what makes "exactly 5 of 20" testable.
 - **Teardown order** (`lkl_lifecycle.c`).
-  - The timer is shut down with `timer_shutdown_sync()` (6.2+), which also
-    prevents it from re-arming, before the memory it writes is freed.
+  - The timer is shut down with `timer_shutdown_sync()` (6.2+, the
+    supported floor), which also prevents it from re-arming, before the
+    memory it writes is freed.
   - The sysfs group is removed before the state its `show()` callbacks
     read.
   - `kmalloc_array` checks the size multiplication for overflow.
-- **API drift** is isolated in [`../include/lkl_compat.h`](../include/lkl_compat.h):
-  `timer_shutdown_sync` (6.2) and `from_timer` → `timer_container_of`
-  (6.16).
+- **API drift** is isolated in [`../include/lkl_compat.h`](../include/lkl_compat.h)
+  and handled by feature detection (`#ifdef timer_container_of` for the
+  6.16 rename), not version-number checks.
 
 ## Run
 

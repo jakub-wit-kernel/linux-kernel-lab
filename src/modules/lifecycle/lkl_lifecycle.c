@@ -70,8 +70,10 @@ static void lkl_tick(struct timer_list *t)
 	struct lkl_state *s = lkl_timer_container_of(s, t, timer);
 	int n = atomic_inc_return(&s->ticks);
 
-	/* Timer callbacks never run concurrently with themselves, so this
-	 * slot write needs no lock; readers tolerate a stale sample. */
+	/*
+	 * Timer callbacks never run concurrently with themselves, so this
+	 * slot write needs no lock; readers tolerate a stale sample.
+	 */
 	WRITE_ONCE(s->samples[(unsigned int)(n - 1) % s->nsamples], jiffies);
 	mod_timer(&s->timer, jiffies + msecs_to_jiffies(tick_ms));
 }
@@ -174,7 +176,7 @@ err_out:
 static void __exit lkl_lifecycle_exit(void)
 {
 	/* Reverse order of init. Stop the timer first: it writes samples. */
-	lkl_timer_shutdown_sync(&st->timer);
+	timer_shutdown_sync(&st->timer);
 	pr_info("undo 4: timer stopped after %d ticks\n",
 		atomic_read(&st->ticks));
 	sysfs_remove_group(st->kobj, &lkl_group);

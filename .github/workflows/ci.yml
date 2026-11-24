@@ -22,7 +22,7 @@ jobs:
       - name: shellcheck
         run: |
           sudo apt-get update && sudo apt-get install -y shellcheck
-          shellcheck -x scripts/*.sh tests/run_all.sh tests/modules/*.sh tests/lib/common.sh
+          shellcheck -x -P SCRIPTDIR scripts/*.sh tests/run_all.sh tests/modules/*.sh tests/lib/common.sh
 
   build:
     name: Build and static analysis (${{ matrix.os }})

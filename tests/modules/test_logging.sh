@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: GPL-2.0
 # lkl_logging: severities, once, hex dump, rate limiting, dynamic debug.
+# shellcheck source=tests/lib/common.sh
 source "$(dirname "$0")/../lib/common.sh"
 require_root
 

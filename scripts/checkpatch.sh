@@ -35,7 +35,8 @@ if [[ -z $cp || ! -x $cp ]]; then
 	exit 2
 fi
 
-mapfile -t files < <(find src -name '*.[ch]' | sort)
+# Tracked sources only: never the build's generated *.mod.c files.
+mapfile -t files < <(git ls-files 'src/*.c' 'src/*.h')
 out=$("$cp" --no-tree --strict --terse --show-types -f "${files[@]}" || true)
 echo "$out"
 errors=$(grep -c ': ERROR:' <<<"$out" || true)

@@ -2,14 +2,16 @@
 
 ## Supported range
 
-The code targets **Linux 5.15 and later** (5.15 is the oldest LTS still
-common in distributions). API differences inside that range are handled
-in [`src/include/lkl_compat.h`](../src/include/lkl_compat.h):
+The code targets **Linux 6.2 and later**. 6.2 added
+`timer_shutdown_sync()`, which teardown code should use because it also
+prevents a timer from being re-armed. API differences inside the supported
+range are handled in [`src/include/lkl_compat.h`](../src/include/lkl_compat.h)
+by **feature detection**, not `LINUX_VERSION_CODE` comparisons, which go
+wrong on distribution kernels that backport APIs:
 
 | Change | Release | Shim |
 |---|---|---|
-| `timer_shutdown_sync()` added | 6.2 | `lkl_timer_shutdown_sync()` falls back to `del_timer_sync()` |
-| `from_timer()` renamed `timer_container_of()` | 6.16 | `lkl_timer_container_of()` |
+| `from_timer()` renamed `timer_container_of()` | 6.16 | `lkl_timer_container_of()`, chosen with `#ifdef timer_container_of` |
 
 ## Kernels actually tested
 

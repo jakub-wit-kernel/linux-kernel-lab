@@ -9,7 +9,7 @@
 #
 # Exit status: number of failed test scripts (0 = all passed).
 set -uo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit 1
 
 if [[ $EUID -ne 0 ]]; then
 	echo "run_all.sh: needs root (insmod, /dev/kmsg)" >&2

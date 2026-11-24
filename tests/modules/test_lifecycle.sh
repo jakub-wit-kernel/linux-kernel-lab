@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0
 # lkl_lifecycle: normal life cycle, then a forced failure at every init step
 # to prove each unwind path releases exactly what was acquired, in reverse.
+# shellcheck source=tests/lib/common.sh
 source "$(dirname "$0")/../lib/common.sh"
 require_root
 
@@ -64,7 +65,9 @@ check_fails "fail_at above 4 rejected" load $M fail_at=9
 m=$(mark)
 cycles_ok=1
 for i in $(seq 20); do
-	load $M tick_ms=10 && sleep 0.02 && rmmod $M || { cycles_ok=0; break; }
+	if ! load $M tick_ms=10; then cycles_ok=0; break; fi
+	sleep 0.02
+	if ! rmmod $M; then cycles_ok=0; break; fi
 done
 check "20 load/unload cycles with a live timer" test $cycles_ok -eq 1
 check_eq "every cycle logged its full teardown" "20" \
