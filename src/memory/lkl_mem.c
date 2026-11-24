@@ -14,7 +14,8 @@
  *                    alignment: N objects, constructor state preserved
  *                    across free/alloc
  *   pages ORDER      alloc_pages(): buddy blocks are aligned to their size
- *   vmalloc BYTES    vmalloc(): virtually contiguous, physically scattered
+ *   vmalloc BYTES    vmalloc(): virtually contiguous, not necessarily
+ *                    physically contiguous
  *
  * Detector demonstrations, refused (-EOPNOTSUPP) without the detector:
  *

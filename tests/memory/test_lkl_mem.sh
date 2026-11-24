@@ -37,7 +37,8 @@ r=$(run "cache 20000")
 check "cache: ok" test "$(field ok "$r")" = 1
 check_eq "cache: every object 64-byte aligned" "0" "$(field misaligned "$r")"
 check_eq "cache: constructor state on every allocation" "0" "$(field not_constructed "$r")"
-check "cache: object padded to the alignment" test "$(field object_size "$r")" -ge 64
+# kmem_cache_size() is the object size the cache was created with.
+check_eq "cache: object size is sizeof(struct lkl_obj)" "60" "$(field object_size "$r")"
 
 for order in 0 3 8; do
 	r=$(run "pages $order")

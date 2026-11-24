@@ -17,7 +17,7 @@ for bad input. `result` holds the report either way.
 | `kmalloc` | largest size (≤ 1 MiB) | For sizes from 1 byte up: the size class `kmalloc_size_roundup()` picks (13 → 16, 100 → 128, 5000 → 8192), `ARCH_KMALLOC_MINALIGN` alignment, and natural alignment for power-of-two sizes |
 | `cache` | objects (≤ 100,000) | A `kmem_cache` with 64-byte alignment and a constructor. Every object is aligned. Over two rounds, every allocation returns an object in its constructed state, which only holds if objects are restored before `kmem_cache_free()`. |
 | `pages` | order (≤ 8) | Four `alloc_pages()` blocks; each starts on a pfn that is a multiple of its size (a buddy allocator property) |
-| `vmalloc` | bytes (≤ 64 MiB) | `vmalloc()` memory is virtually contiguous; reports how many physically contiguous runs back it |
+| `vmalloc` | bytes (≤ 64 MiB) | `vmalloc()` memory is virtually contiguous; reports how many physically contiguous runs back it (often 1 on a freshly booted machine, nothing guarantees it) |
 
 ## `/dev/lkl_mmap`
 
