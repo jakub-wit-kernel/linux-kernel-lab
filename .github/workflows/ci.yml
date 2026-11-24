@@ -1,0 +1,100 @@
+# SPDX-License-Identifier: GPL-2.0
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tooling:
+    name: Test tooling and shell lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: kmsg.py unit tests
+        run: python3 -m unittest discover -s tests/lib -v
+      - name: shellcheck
+        run: |
+          sudo apt-get update && sudo apt-get install -y shellcheck
+          shellcheck -x -P SCRIPTDIR scripts/*.sh tests/run_all.sh tests/modules/*.sh tests/lib/common.sh
+
+  build:
+    name: Build and static analysis (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Kernel headers and matching compiler
+        run: |
+          cat /proc/version
+          KCC=$(scripts/kernel-cc.sh)
+          sudo apt-get update
+          sudo apt-get install -y "linux-headers-$(uname -r)" sparse "$KCC"
+          echo "KCC=$KCC" >> "$GITHUB_ENV"
+      - name: Build (warnings are errors)
+        run: make CC="$KCC"
+      - name: W=1
+        run: make w1 CC="$KCC"
+      - name: sparse
+        run: make sparse CC="$KCC"
+      - name: checkpatch (upstream, pinned tag)
+        run: scripts/checkpatch.sh --fetch && scripts/checkpatch.sh
+
+  test-host:
+    name: Module tests on runner kernel (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Kernel headers and matching compiler
+        run: |
+          KCC=$(scripts/kernel-cc.sh)
+          sudo apt-get update
+          sudo apt-get install -y "linux-headers-$(uname -r)" "$KCC"
+          echo "KCC=$KCC" >> "$GITHUB_ENV"
+      - run: make CC="$KCC"
+      - name: Run module tests
+        run: sudo timeout 600 tests/run_all.sh
+      - name: Kernel log (on failure)
+        if: failure()
+        run: sudo dmesg | tail -n 200
+
+  test-qemu:
+    name: Module tests inside QEMU (virtme-ng)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enable KVM for the runner user
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' |
+            sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm || true
+          ls -l /dev/kvm || echo "no /dev/kvm: QEMU will use software emulation"
+      - name: Install QEMU, virtme-ng, headers
+        run: |
+          KCC=$(scripts/kernel-cc.sh)
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86 "linux-headers-$(uname -r)" "$KCC"
+          pipx install virtme-ng
+          echo "KCC=$KCC" >> "$GITHUB_ENV"
+          sudo chmod 0644 "/boot/vmlinuz-$(uname -r)"
+      - name: Run module tests in a VM booting the runner's kernel
+        run: timeout 1500 scripts/qemu-test.sh
+        env:
+          CC: ${{ env.KCC }}
