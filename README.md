@@ -29,7 +29,7 @@ tested kernels.
 |---|---|---|
 | `src/modules/` | Kernel module fundamentals | 1 |
 | `drivers/` | Character devices, procfs and sysfs | 2 |
-| `src/concurrency/` | Locking, RCU, wait queues, workqueues (M4, in progress) | 3 |
+| `src/concurrency/` | Locking, RCU, wait queues, workqueues (M4) | 3 |
 | `networking/` | Network devices, namespaces, netfilter | 4 |
 | `ebpf/` | eBPF and XDP programs | 4 |
 | `benchmarks/` | Performance experiments | 3–5 |

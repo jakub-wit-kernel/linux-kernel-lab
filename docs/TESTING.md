@@ -84,3 +84,30 @@ Notes:
   comparisons were replaced with feature detection.
 - On Ubuntu 22.04, sparse 0.6.4 prints many warnings from the kernel's
   own headers; `make sparse` fails only on findings in `src/`.
+
+### M4 (PR #7, CI run 45416452233)
+
+The new `test-debug-kernel` job boots Linux 6.12.0, built by
+`scripts/build-debug-kernel.sh` with `PROVE_LOCKING`, `KASAN`
+(generic), `DEBUG_ATOMIC_SLEEP` and `DEBUG_LIST`, in QEMU. The CI log
+shows each option set to `y`. The whole suite runs there.
+
+| Check | Dev sandbox | Ubuntu 22.04, Linux 6.8 | Ubuntu 24.04, Linux 7.0 | QEMU (KVM), Linux 7.0 | QEMU (KVM), Linux 6.12 debug |
+|---|---|---|---|---|---|
+| `lkl_sync` build, W=1, sparse | not possible | passed | passed | n/a | built against the debug tree |
+| checkpatch `--strict` (10 files) | not possible | 0 errors, 0 warnings | 0 errors, 0 warnings, 3 checks (long format strings) | n/a | n/a |
+| `test_lkl_sync` (28 checks: 7 experiments' invariants, input validation) | not possible | passed | passed | passed | passed, no lockdep/KASAN reports |
+| Unlocked `racy` counter: updates lost of 4,000,000 | not possible | 3,116,980 | 753,687 | 2,230,885 | 1,128,072 |
+| Detector demonstrations | not possible | skipped (no detectors) | skipped | skipped | lockdep `inconsistent lock state` and `KASAN: use-after-free` both reported |
+| All earlier suites (M1–M3) | | passed | passed | passed | passed, with no lockdep, KASAN or atomic-sleep reports |
+
+Notes:
+- The first run (45413625126) had every test job green, including the
+  debug kernel, but failed checkpatch. The 7.0 checkpatch on the 24.04
+  runner suggests `kzalloc_obj()`, which 6.x kernels lack, so
+  `ALLOC_WITH_SIZEOF` is ignored.
+- The debug kernel has no `CONFIG_DYNAMIC_DEBUG`, so one `test_logging`
+  check is skipped there. It passes on the runner kernels.
+- `racy` loses a different number of updates on every run. The numbers
+  show that the race is real, not how big it is.
+- KCSAN was not run: it cannot be combined with KASAN.
