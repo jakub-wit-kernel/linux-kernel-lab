@@ -37,6 +37,8 @@ echo "qemu-test: booting $KIMG with $kvm_note"
 
 # --user root: insmod and /dev/kmsg need root inside the guest.
 # LKL_EXPECT_VM makes run_all.sh verify it really runs under QEMU.
-vng --run "$KIMG" --user root --cpus 2 --memory 1G \
+# LKL_EXPECT_DETECTORS (debug-kernel CI) makes the detector test fail
+# instead of skipping if lockdep or KASAN turn out to be missing.
+vng --run "$KIMG" --user root --cpus 2 --memory "${LKL_QEMU_MEM:-1G}" \
 	--rwdir "$PWD" \
-	--exec "cd '$PWD' && LKL_EXPECT_VM=1 tests/run_all.sh"
+	--exec "cd '$PWD' && LKL_EXPECT_VM=1 LKL_EXPECT_DETECTORS=${LKL_EXPECT_DETECTORS:-} tests/run_all.sh"
