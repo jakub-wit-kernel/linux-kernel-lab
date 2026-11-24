@@ -5,12 +5,13 @@
 | Layer | Command | Needs |
 |---|---|---|
 | Test-tool unit tests | `python3 -m unittest discover -s tests/lib` | Python 3.8+ only |
+| User-space build and unit tests | `cmake -S . -B build && cmake --build build && (cd build && ctest)` | CMake, a C compiler |
 | Shell lint | `shellcheck scripts/*.sh tests/*.sh tests/*/*.sh` | shellcheck |
 | Build | `make` (warnings are errors) | headers for the target kernel |
 | Extra warnings | `make w1` | as above |
 | sparse | `make sparse` | sparse |
 | Coding style | `scripts/checkpatch.sh --fetch && scripts/checkpatch.sh` | network once (fetches upstream `checkpatch.pl` at a pinned tag) |
-| Module tests, host kernel | `sudo tests/run_all.sh` | root, modules built for the running kernel |
+| Module and driver tests, host kernel | `sudo tests/run_all.sh` | root, modules built for the running kernel, user-space tools built (`build/`) |
 | Module tests, QEMU | `scripts/qemu-test.sh` | qemu-system-x86, virtme-ng, readable kernel image; KVM optional |
 
 ## How module tests work
@@ -50,6 +51,20 @@ completed successfully.
 | Module tests (4 scripts, 106 checks) | not possible | passed | passed | passed, platform verified as QEMU |
 
 Evidence: CI run 45386256336 on PR #1 (`feature/m1-kernel-modules`).
+
+### M2 (PR #3, CI run 45403541128)
+
+| Check | Dev sandbox | Ubuntu 22.04, Linux 6.8 | Ubuntu 24.04, Linux 7.0 | QEMU guest (KVM), Linux 7.0 |
+|---|---|---|---|---|
+| User-space build (gcc, clang, `-Werror`) and library unit tests | passed, also under ASan+UBSan | n/a | passed (gcc, clang, ASan+UBSan) | n/a |
+| Driver build, W=1, sparse | not possible | passed | passed | n/a |
+| checkpatch `--strict` (7 files) | not possible | passed: 0 errors, 0 warnings | passed: same | n/a |
+| C device suite (17 cases) | correctly skips without a device | passed | passed | passed |
+| Torn-read check (concurrent block reads, 0 torn) | not possible | 520,389 reads | 404,480 reads | 313,468 reads |
+| Driver shell test (nodes, sysfs, CLI, dd, rmmod-while-open) | not possible | passed | passed | passed |
+
+checkpatch's three `--strict` CHECK notes (blank lines in the UAPI
+header) were fixed after this run; the fix is in the PR.
 
 Notes:
 - The first CI run (45385836101) passed every module test but failed

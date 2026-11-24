@@ -25,6 +25,9 @@ command -v qemu-system-x86_64 >/dev/null || die "qemu-system-x86_64 not found"
 
 # CC on the command line: kbuild ignores a CC environment variable.
 make -s modules KDIR="$KDIR" ${CC:+CC="$CC"}
+# User-space tools and test programs (run inside the guest from the share).
+cmake -S . -B build >/dev/null
+cmake --build build -j >/dev/null
 
 kvm_note="KVM"
 if [[ ! -w /dev/kvm ]]; then
