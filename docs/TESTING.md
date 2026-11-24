@@ -66,6 +66,17 @@ Evidence: CI run 45386256336 on PR #1 (`feature/m1-kernel-modules`).
 checkpatch's three `--strict` CHECK notes (blank lines in the UAPI
 header) were fixed after this run; the fix is in the PR.
 
+### M3 (PR #5, CI run 45411395148)
+
+| Check | Dev sandbox | Ubuntu 22.04, Linux 6.8 | Ubuntu 24.04, Linux 7.0 | QEMU guest (KVM), Linux 7.0 |
+|---|---|---|---|---|
+| Driver build, W=1, sparse | not possible | passed | passed | n/a |
+| checkpatch `--strict` (9 files) | not possible | 0 errors, 0 warnings, 0 checks | same | n/a |
+| C interface suite (9 cases) | correctly skips without the module | passed | passed | passed |
+| Paged read under concurrent adds (lines read, all strictly increasing) | not possible | 781 | 578 | 565 |
+| Shell test (modes, validation, debugfs, `is_visible`, removal) | not possible | passed | passed | passed |
+| All earlier suites (M1, M2) | | passed | passed | passed |
+
 Notes:
 - The first CI run (45385836101) passed every module test but failed
   checkpatch and shellcheck. The fixes are in the PR's history:
