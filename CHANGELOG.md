@@ -6,10 +6,19 @@ Milestones are listed when they are merged.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-24
+
 ### Added
-- M4 (in progress): `lkl_sync` concurrency experiments driven from
-  sysfs; `scripts/build-debug-kernel.sh` and a CI job that runs the
-  whole suite on a lockdep + KASAN kernel in QEMU.
+- M4 (PR #7): `lkl_sync`, concurrency experiments run through sysfs
+  (softirq-safe spinlocks, atomics, an unlocked racy counter, mutexes,
+  RCU, a wait-queue bounded buffer, workqueues and delayed work), each
+  checking an invariant in the kernel; detector demonstrations for
+  lockdep and KASAN; `scripts/build-debug-kernel.sh` and a CI job that
+  runs the whole suite on a lockdep + KASAN 6.12 kernel in QEMU.
+
+### Changed
+- checkpatch ignores `ALLOC_WITH_SIZEOF`: the suggested `kzalloc_obj()`
+  does not exist on 6.x kernels.
 
 ## [0.3.0] - 2026-11-24
 
