@@ -6,9 +6,21 @@ Milestones are listed when they are merged.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-24
+
 ### Added
-- M5 (in progress): `lkl_mem` allocation experiments and the
-  `/dev/lkl_mmap` device; kmemleak and dynamic debug in the debug kernel.
+- M5 (PR #9): `lkl_mem`, memory experiments run through sysfs
+  (`kmalloc` size classes and alignment, a constructed and aligned
+  `kmem_cache`, buddy-block alignment, `vmalloc` physical layout);
+  `/dev/lkl_mmap`, a buffer mapped into user space by a fault handler,
+  with an 11-case C suite; kmemleak and KASAN demonstrations.
+- The debug kernel also enables kmemleak and dynamic debug, and boots
+  with `kasan_multi_shot`.
+
+### Fixed
+- The `lkl_sync` RCU use-after-free demonstration could miss its race
+  and go unreported (seen once in CI); readers now hold the stale
+  pointer for 50 us in that demonstration only.
 
 ## [0.4.0] - 2026-11-24
 

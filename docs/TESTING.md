@@ -111,3 +111,42 @@ Notes:
 - `racy` loses a different number of updates on every run. The numbers
   show that the race is real, not how big it is.
 - KCSAN was not run: it cannot be combined with KASAN.
+
+### M5 (PR #9, CI run 45425305054)
+
+The debug kernel is now Linux 6.12.0 built with `PROVE_LOCKING`, `KASAN`,
+`DEBUG_ATOMIC_SLEEP`, `DEBUG_LIST`, `DEBUG_KMEMLEAK` and
+`DYNAMIC_DEBUG`. The CI log shows each one set to `y`. It boots with
+`kasan_multi_shot`.
+
+| Check | Dev sandbox | Ubuntu 22.04, Linux 6.8.0-1070-azure | Ubuntu 24.04, Linux 7.0.0-1014-aws | QEMU (KVM), Linux 7.0.0-1017-azure | QEMU (KVM), Linux 6.12 debug |
+|---|---|---|---|---|---|
+| `lkl_mem` build, W=1, sparse | not possible | passed | passed | n/a | built against the debug tree |
+| checkpatch `--strict` (11 files) | not possible | 0 errors, 0 warnings, 6 checks (long format strings) | same | n/a | n/a |
+| `lkl_mmap_test` C suite (11 cases) | compiles with gcc and clang `-Werror`; skips without the device | passed | passed | passed | passed |
+| Faults on first touch / second touch of 8 mapped pages | not possible | 8 / 0 | 8 / 0 | 8 / 0 | 8 / 0 |
+| `test_lkl_mem` (39 checks: experiments, validation, rmmod while open) | not possible | passed | passed | passed | passed, no KASAN reports |
+| Physical runs behind an 8 MiB `vmalloc` (2048 pages) | not possible | 290 | 1 | 1 | 1104 |
+| kmemleak: leaked objects reported (of 8), by content and backtrace | not possible | skipped | skipped | skipped | 4 |
+| KASAN: `slab-out-of-bounds`, 1-byte write | not possible | skipped | skipped | skipped | reported |
+| All earlier suites (M1–M4), including the M4 detector test | | passed | passed | passed | passed; the `test_logging` dynamic-debug check now runs here too |
+
+`kmalloc` size classes were the same on every kernel: 1→8, 13→16,
+100→128, 200→256, 5000→8192, 200000→262144. Powers of two map to
+themselves.
+
+Notes:
+- The first run (45422185673) failed `test_lkl_mem` everywhere. The
+  test assumed `kmem_cache_size()` includes alignment padding; it
+  returns the object size (60). The test was fixed.
+- In the same run, the M4 RCU use-after-free demonstration went
+  unreported on the debug kernel. It passed in the next run without
+  changes, so it was a race window that sometimes stayed shut. The
+  demonstration now widens the window deliberately. The fix was
+  verified in 45425305054.
+- kmemleak reported 4 of the 8 leaked objects. The others were still
+  referenced from somewhere kmemleak scans when it looked (for example
+  a stale stack slot); the test requires at least one.
+- The 24.04 runner image changed between M4 and M5, from
+  `7.0.0-1017-azure` to `7.0.0-1014-aws`. Both are recorded in
+  docs/KERNEL_VERSIONS.md.
