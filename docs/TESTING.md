@@ -39,13 +39,22 @@ Safeguards against false passes:
 What has actually run, and where. A cell says *passed* only when the run
 completed successfully.
 
-| Check | Dev sandbox (no module support, no network) | CI: Ubuntu 22.04 runner | CI: Ubuntu 24.04 runner | CI: QEMU guest |
+| Check | Dev sandbox (no module support, no network) | CI: Ubuntu 22.04 runner, Linux 6.8.0-1070-azure | CI: Ubuntu 24.04 runner, Linux 7.0.0-1017-azure | CI: QEMU guest (KVM), Linux 7.0.0-1017-azure |
 |---|---|---|---|---|
-| kmsg.py unit tests | passed (16 tests) | see PR | see PR | n/a |
-| Shell syntax (`bash -n`) | passed | n/a | n/a | n/a |
-| Test harness refuses to run without module support | passed (bails out) | n/a | n/a | n/a |
-| Build, W=1, sparse, checkpatch | not possible (no kernel headers) | see PR | see PR | n/a |
-| Module tests | not possible | see PR | see PR | see PR |
+| kmsg.py unit tests | passed (16) | n/a | passed (16) | n/a |
+| Shell syntax / shellcheck | `bash -n` passed | n/a | shellcheck passed | n/a |
+| Harness refuses to run without module support | passed (all scripts bail out) | n/a | n/a | n/a |
+| Build with `-Werror` | not possible (no headers) | passed | passed | n/a (same modules) |
+| W=1, sparse (findings in our sources) | not possible | passed (0) | passed (0) | n/a |
+| checkpatch `--strict` (upstream v6.12) | not possible (no network) | passed: 0 errors, 0 warnings, 0 checks | passed: same | n/a |
+| Module tests (4 scripts, 106 checks) | not possible | passed | passed | passed, platform verified as QEMU |
 
-The CI columns are filled in from the milestone pull request's actual CI
-results.
+Evidence: CI run 45386256336 on PR #1 (`feature/m1-kernel-modules`).
+
+Notes:
+- The first CI run (45385836101) passed every module test but failed
+  checkpatch and shellcheck. The fixes are in the PR's history:
+  checkpatch was scanning generated `*.mod.c` files, and version-number
+  comparisons were replaced with feature detection.
+- On Ubuntu 22.04, sparse 0.6.4 prints many warnings from the kernel's
+  own headers; `make sparse` fails only on findings in `src/`.

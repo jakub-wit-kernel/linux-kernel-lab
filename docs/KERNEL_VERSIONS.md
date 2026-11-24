@@ -20,7 +20,12 @@ added from CI logs.
 
 | Kernel | Where | Build | Host tests | QEMU tests | Evidence |
 |---|---|---|---|---|---|
-| (pending first CI run of milestone 1) | | | | | |
+| 6.8.0-1070-azure | GitHub Actions, Ubuntu 22.04 runner | passed (`-Werror`, W=1, sparse) | passed (106 checks) | not run | CI run 45386256336 |
+| 7.0.0-1017-azure | GitHub Actions, Ubuntu 24.04 runner | passed (`-Werror`, W=1, sparse) | passed (106 checks) | passed under KVM (106 checks) | CI run 45386256336 |
+
+Untested so far: anything below 6.8, including the 6.2 floor. The floor
+follows from the APIs used, not from a test run. A QEMU job booting an
+older kernel would close that gap.
 
 ## Build and test dependencies
 
