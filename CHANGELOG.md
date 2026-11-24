@@ -6,8 +6,10 @@ Milestones are listed when they are merged.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-24
+
 ### Added
-- M3 (in review): `lkl_events` with a `seq_file` listing paged by
+- M3 (PR #5): `lkl_events` with a `seq_file` listing paged by
   sequence number, a binary snapshot frozen at open, a procfs control
   file, validated sysfs attributes, a pollable `alert` attribute driven
   by `sysfs_notify()`, a debug attribute group gated by `is_visible`,
