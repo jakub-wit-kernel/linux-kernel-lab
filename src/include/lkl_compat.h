@@ -11,6 +11,7 @@
 #ifndef LKL_COMPAT_H
 #define LKL_COMPAT_H
 
+#include <linux/device.h>
 #include <linux/timer.h>
 
 /* 6.16 renamed from_timer() to timer_container_of(); both are macros. */
@@ -18,6 +19,16 @@
 #define lkl_timer_container_of(var, t, field)	timer_container_of(var, t, field)
 #else
 #define lkl_timer_container_of(var, t, field)	from_timer(var, t, field)
+#endif
+
+/*
+ * 6.4 dropped the owner argument of class_create(). Before 6.4 it was a
+ * macro wrapping __class_create(), so its presence identifies the old API.
+ */
+#ifdef class_create
+#define lkl_class_create(name)	class_create(THIS_MODULE, name)
+#else
+#define lkl_class_create(name)	class_create(name)
 #endif
 
 #endif /* LKL_COMPAT_H */

@@ -38,7 +38,7 @@ if [[ -z $cp || ! -x $cp ]]; then
 fi
 
 # Tracked sources only: never the build's generated *.mod.c files.
-mapfile -t files < <(git ls-files 'src/*.c' 'src/*.h')
+mapfile -t files < <(git ls-files 'src/*.[ch]' 'drivers/*.[ch]' 'include/*.h' | grep -v '/user/')
 out=$("$cp" --no-tree --strict --terse --show-types -f "${files[@]}" || true)
 echo "$out"
 errors=$(grep -c ': ERROR:' <<<"$out" || true)
