@@ -27,7 +27,7 @@ check_eq "device numbers match sysfs" \
 # The C suite does the heavy lifting; relay its TAP output as diagnostics.
 out=$("$CTEST" 2>&1)
 status=$?
-sed 's/^/#   /' <<<"$out"
+while IFS= read -r line; do echo "#   $line"; done <<<"$out"
 check_eq "C device test suite passes (exit status)" "0" "$status"
 check "C device test suite ran every case" grep -q "^# [0-9]* run, [0-9]* passed, 0 failed" <<<"$out"
 
