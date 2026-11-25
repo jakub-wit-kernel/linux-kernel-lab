@@ -182,16 +182,29 @@ static struct bpf_program *find_prog(struct bpf_object *obj, const char *name)
 /*
  * Pin the object's maps and @link_fd under <pin>/<feature>/. On failure
  * everything is unpinned again; closing the link fd then detaches.
+ *
+ * Each map is pinned by its own path: bpf_object__pin_maps() replaces
+ * every '.' in the whole path with '_' (bpffs names may not contain
+ * dots), so a pin directory such as /tmp/tmp.XXXX/... would not be found.
  */
 static int pin_all(struct bpf_object *obj, const char *feature, int link_fd)
 {
 	char dir[PATH_MAX], p[PATH_MAX];
+	struct bpf_map *map;
+	int err = 0;
 
 	pin_path(dir, sizeof(dir), feature, NULL);
+	bpf_object__for_each_map(map, obj) {
+		pin_path(p, sizeof(p), feature, bpf_map__name(map));
+		if (bpf_map__pin(map, p)) {
+			err = errno;
+			break;
+		}
+	}
 	pin_path(p, sizeof(p), feature, "link");
-	if (bpf_object__pin_maps(obj, dir) || bpf_obj_pin(link_fd, p)) {
-		int err = errno;
-
+	if (!err && bpf_obj_pin(link_fd, p))
+		err = errno;
+	if (err) {
 		remove_pin_dir(feature);
 		return fail("pin under %s: %s", dir, strerror(err));
 	}

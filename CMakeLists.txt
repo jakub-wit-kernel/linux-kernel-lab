@@ -96,16 +96,17 @@ if(LKL_BPF)
 endif()
 
 if(LKL_BPF_ENABLED)
-  # -target bpf does not search the multiarch directory (asm/types.h).
-  execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpmachine
-                  OUTPUT_VARIABLE _triple OUTPUT_STRIP_TRAILING_WHITESPACE)
   set(_bpf_flags -g -O2 -target bpf -Wall -Werror
       -I${PROJECT_SOURCE_DIR}/ebpf/include)
   foreach(_d ${LKL_LIBBPF_INCLUDE})
     list(APPEND _bpf_flags -I${_d})
   endforeach()
-  if(_triple AND EXISTS /usr/include/${_triple})
-    list(APPEND _bpf_flags -idirafter /usr/include/${_triple})
+  # -target bpf does not search the multiarch directory (asm/types.h).
+  # CMake knows it on Debian-style systems, whatever the C compiler's
+  # own triple is (gcc: x86_64-linux-gnu, clang: x86_64-pc-linux-gnu).
+  if(CMAKE_LIBRARY_ARCHITECTURE AND
+     EXISTS /usr/include/${CMAKE_LIBRARY_ARCHITECTURE})
+    list(APPEND _bpf_flags -idirafter /usr/include/${CMAKE_LIBRARY_ARCHITECTURE})
   endif()
   set(_bpf_objs)
   foreach(_p xdp_filter tc_dscp napi_hist)
