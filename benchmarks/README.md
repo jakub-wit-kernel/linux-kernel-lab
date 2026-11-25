@@ -12,7 +12,13 @@ sudo benchmarks/xdp/run.sh 1000000       # packets per mode
 The output is a Markdown table: packets sent, seconds, packets per
 second, and how many the drop point counted. veth runs the receive side
 on the sending CPU, so the rate includes the cost of receiving up to the
-drop point.
+drop point, on top of the sender's own cost.
+
+The datagrams come from a local socket, so an `sk_buff` exists before
+any XDP program sees them. On veth, native XDP therefore saves little
+over generic XDP. In a hardware driver, native XDP runs before the
+`sk_buff` is allocated, and that is where its advantage comes from.
+This benchmark cannot show that.
 
 Results depend on the machine, and on shared CI runners they vary from
 run to run. Compare the rows of one run, not separate runs. Recorded

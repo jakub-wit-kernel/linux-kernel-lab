@@ -5,15 +5,19 @@
 # datagrams over a veth pair from one namespace to another, and the
 # receiver drops them at one of four points:
 #
-#   xdp-native   XDP_DROP in veth's NAPI poll, before an sk_buff exists
-#   xdp-generic  XDP_DROP in the core receive path, after the sk_buff
+#   xdp-native   XDP_DROP in veth's NAPI poll (veth's native XDP)
+#   xdp-generic  XDP_DROP in the core receive path (generic XDP)
 #   netfilter    NF_DROP at IPv4 LOCAL_IN (the lab's lkl_nf module)
 #   stack        no filter and no listener: dropped at the UDP socket
 #                lookup (counted as Udp NoPorts)
 #
 # veth runs the receive side on the sending CPU (NAPI, or the backlog in
 # softirq), so the send rate includes the cost of receiving up to the
-# drop point. Numbers depend on the machine; compare rows, not runs.
+# drop point, on top of the sender's own cost. Note that the frames come
+# from a local socket, so an sk_buff exists before any XDP program runs:
+# veth's native XDP saves less here than XDP in a hardware driver, where
+# it runs before the sk_buff is allocated. Numbers depend on the
+# machine; compare rows, not runs.
 #
 #   sudo benchmarks/xdp/run.sh [PACKETS] [CPU]    (default 1000000, CPU 0)
 #
