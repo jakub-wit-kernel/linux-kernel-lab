@@ -78,6 +78,7 @@ flood() {
 }
 
 # Udp NoPorts in NS1 (the second Udp: line holds the values).
+# shellcheck disable=SC2016 # $3 is awk's, not the shell's
 noports() { nsx $NS1 awk '/^Udp:/ { if (h) print $3; h = 1 }' /proc/net/snmp; }
 
 rows=()
