@@ -187,3 +187,66 @@ Notes:
   The counter can only move with `rx_ring` above 64.
 - One frame was counted as `rx_dropped` in every run. It is the
   4000-byte ping in the MTU test, also seen in `rx_dropped_mtu`.
+
+### M7 (PR #13, CI run 45520291266)
+
+The eBPF parts are built against libbpf v1.6.3 from
+`scripts/build-libbpf.sh` in the tooling, host-test and QEMU jobs. Those
+jobs set `LKL_EXPECT_BPF=1`, so an eBPF test there can fail but cannot
+skip. In each of them `lklbpf probe` reported
+`xdp=1 sched_cls=1 tracepoint=1 btf=1`.
+
+| Check | Dev sandbox | Ubuntu 22.04, Linux 6.8.0-1070-azure | Ubuntu 24.04, Linux 7.0.0-1014-aws | QEMU (KVM), Linux 7.0.0-1014-aws | QEMU (KVM), Linux 6.12 debug |
+|---|---|---|---|---|---|
+| BPF objects (clang `-target bpf -Werror`) | compiled with clang 18 against libbpf v1.6.3 headers | built | built | built on the host | not built (no libbpf in that job) |
+| `lklbpf` (gcc and clang `-Werror`, plus ASan+UBSan) | compiles; not linked (no libelf) | built | built in the tooling job, all three configurations | built on the host | not built |
+| Programs pass the verifier and load | not possible | yes | yes | yes | — |
+| `test_xdp` (49 checks) | not possible | passed | passed | passed | skipped: lklbpf not built |
+| XDP mode chosen by `auto` | — | generic on `lkl_vnet`, native on veth | same | same | — |
+| `test_tc` (21 checks): 70/70 rewritten, all delivered, ECN kept | not possible | passed | passed | passed | skipped |
+| `test_napi_trace` (15 checks): tracepoint polls / work vs `lkl_vnet`'s napi_polls / rx_packets | not possible | 2,214 / 4,955, equal | 2,215 / 4,954, equal | 2,212 / 4,954, equal | skipped |
+| All earlier suites (M1–M6) | | passed | passed | passed | passed (lockdep/KASAN/kmemleak clean, detector demos seen) |
+
+The CO-RE program `napi_hist` loaded unchanged on 6.8 and 7.0: libbpf
+relocated its field offsets against each kernel's BTF. It has not run on
+the debug kernel, which is built without BTF.
+
+**XDP drop benchmark** (`benchmarks/xdp/run.sh 1000000`, same CI run;
+one sending CPU, 64-byte datagrams; every mode's drop point counted all
+1,000,000):
+
+| Mode | Ubuntu 22.04, 6.8.0-1070-azure, AMD EPYC 7763 | Ubuntu 24.04, 7.0.0-1014-aws, Intel Xeon 6975P-C |
+|---|---|---|
+| xdp-native | 0.33 Mpps | 1.19 Mpps |
+| xdp-generic | 0.34 Mpps | 1.23 Mpps |
+| netfilter (`lkl_nf`) | 0.34 Mpps | 1.12 Mpps |
+| stack (UDP NoPorts) | 0.24 Mpps | 0.79 Mpps |
+
+Reading the benchmark:
+- The rate includes the sender's own cost. The datagrams come from a
+  local socket, so an `sk_buff` exists before either XDP hook runs.
+- That is why native and generic XDP on veth are within a few percent
+  of each other, and close to netfilter. Native XDP's real advantage,
+  running before the `sk_buff` is allocated, needs a hardware driver.
+- When packets reach the UDP socket lookup (and the stack answers with
+  ICMP port unreachable, which is rate-limited), the rate falls to about
+  70% of the rate when they are dropped earlier, on both machines.
+- Two runs of the same job landed on different CPUs (an earlier run's
+  22.04 job had an EPYC 9V74 and got 0.43 Mpps for xdp-native). Compare
+  rows within one column, not across runs.
+
+Notes:
+- First run (45517337063):
+  - Every program loaded and passed the verifier, but no pin could be
+    created. `bpf_object__pin_maps()` replaces every `.` in the whole
+    path with `_`, and the test directory was `/tmp/tmp.XXXX`. `lklbpf`
+    now pins each map by its exact path.
+  - With `CC=clang`, the BPF objects did not find `asm/types.h`. clang's
+    triple is not the multiarch directory name; CMake now uses
+    `CMAKE_LIBRARY_ARCHITECTURE`.
+- Second run (45518220160): all 15 test scripts passed on both hosts,
+  but the benchmark exited early. Under `set -e`, `ns_cleanup` failing to
+  delete a missing namespace ended the script. It now checks each step
+  explicitly.
+- Shellcheck findings fixed along the way: cleanup functions called only
+  by the EXIT trap (SC2317), and an awk `$3` inside `nsx` (SC2016).

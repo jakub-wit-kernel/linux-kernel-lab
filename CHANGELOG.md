@@ -6,10 +6,18 @@ Milestones are listed when they are merged.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-24
+
 ### Added
-- M7 (in progress): eBPF programs `xdp_filter`, `tc_dscp` and
-  `napi_hist`, the `lklbpf` loader, `scripts/build-libbpf.sh`, eBPF tests
-  and the XDP drop benchmark.
+- M7 (PR #13): eBPF programs built with clang and loaded with libbpf:
+  `xdp_filter` (XDP; LPM and hash deny lists, per-CPU counters),
+  `tc_dscp` (tcx egress DSCP rewrite with an incremental checksum fix)
+  and `napi_hist` (a CO-RE tracepoint program on `napi:napi_poll`,
+  without vmlinux.h); the `lklbpf` loader, which pins links and maps;
+  `scripts/build-libbpf.sh` (pinned libbpf v1.6.3); eBPF tests over
+  `lkl_vnet` and veth pairs between namespaces; and
+  `benchmarks/xdp/run.sh` with the `udpflood` sender.
+- `tests/lib/nettool.py` sends and reports the IPv4 TOS byte.
 
 ## [0.6.0] - 2026-11-24
 

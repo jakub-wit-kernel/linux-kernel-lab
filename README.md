@@ -32,7 +32,7 @@ tested kernels.
 | `src/concurrency/` | Locking, RCU, wait queues, workqueues (M4) | 3 |
 | `src/memory/` | Allocators, `vmalloc`, `mmap` to user space (M5) | 3 |
 | `networking/` | Virtual Ethernet pairs with NAPI, a per-namespace netfilter hook (M6) | 4 |
-| `ebpf/` | XDP, tc and CO-RE tracepoint programs with libbpf, and the `lklbpf` loader (M7, in progress) | 4 |
+| `ebpf/` | XDP, tc and CO-RE tracepoint programs with libbpf, and the `lklbpf` loader (M7) | 4 |
 | `benchmarks/` | Performance experiments (the XDP drop benchmark so far) | 3–5 |
 | `tests/` | Test harness and per-module tests | all |
 | `scripts/` | Build, QEMU and static-analysis tooling | all |

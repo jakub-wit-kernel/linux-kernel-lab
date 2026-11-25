@@ -20,10 +20,10 @@ added from CI logs.
 
 | Kernel | Where | Build (`-Werror`; W=1 and sparse in the build jobs) | Host tests | QEMU tests (KVM) | Evidence (CI runs) |
 |---|---|---|---|---|---|
-| 6.8.0-1070-azure | Ubuntu 22.04 runner | passed in every run, M1–M6 | passed: every suite, M1–M6 | not run | 45386256336 (M1), 45403541128 (M2), 45411395148 (M3), 45416452233 (M4), 45425305054 (M5), 45453186271 (M6) |
+| 6.8.0-1070-azure | Ubuntu 22.04 runner | passed in every run, M1–M6 | passed: every suite, M1–M7 | not run | 45386256336 (M1), 45403541128 (M2), 45411395148 (M3), 45416452233 (M4), 45425305054 (M5), 45453186271 (M6), 45520291266 (M7) |
 | 7.0.0-1017-azure | Ubuntu 24.04 runner image, and the guest kernel booted from it | passed: M1, M2, M5 build jobs | passed: M1 | passed: M1, M5, M6 | host 45386256336; build 45403541128, 45425305054; QEMU 45386256336, 45425305054, 45453186271 |
-| 7.0.0-1014-aws | Ubuntu 24.04 runner image, and the guest kernel booted from it | passed: M3, M4, M6 build jobs, and every host test job below | passed: M2–M6 | passed: M2–M4 | host 45403541128, 45411395148, 45416452233, 45425305054, 45453186271; QEMU 45403541128, 45411395148, 45416452233 |
-| 6.12.0 (kernel.org, lockdep + KASAN + kmemleak) | QEMU guest, built by `scripts/build-debug-kernel.sh` | modules built against it | n/a | passed: every suite plus the detector demonstrations, M4–M6 | 45416452233 (M4), 45425305054 (M5), 45453186271 (M6) |
+| 7.0.0-1014-aws | Ubuntu 24.04 runner image, and the guest kernel booted from it | passed: M3, M4, M6, M7 build jobs, and every host test job below | passed: M2–M7 | passed: M2–M4, M7 | host 45403541128, 45411395148, 45416452233, 45425305054, 45453186271, 45520291266; QEMU 45403541128, 45411395148, 45416452233, 45520291266 |
+| 6.12.0 (kernel.org, lockdep + KASAN + kmemleak) | QEMU guest, built by `scripts/build-debug-kernel.sh` | modules built against it | n/a | passed: every suite plus the detector demonstrations, M4–M7 (eBPF tests skipped: no libbpf in that job, no BTF in that kernel) | 45416452233 (M4), 45425305054 (M5), 45453186271 (M6), 45520291266 (M7) |
 
 GitHub runs `ubuntu-24.04` jobs on more than one runner image, so jobs in
 the same CI run can get different 7.0 kernels. Each test log starts with
