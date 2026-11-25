@@ -112,5 +112,37 @@ wait_link() {
 	return 1
 }
 
-# kv NAME "k=v k=v ...": print the value of NAME.
-kv() { grep -oE "(^| )$1=[^ ]+" <<<"$2" | cut -d= -f2; }
+# kv NAME "k=v k=v ...": print the value of NAME (empty if absent).
+kv() { grep -oE "(^| )$1=[^ ]*" <<<"$2" | head -n 1 | cut -d= -f2; }
+
+# kvn NAME "k=v ...": like kv, but 0 when absent (for arithmetic).
+kvn() {
+	local v
+	v=$(kv "$1" "$2")
+	echo "${v:-0}"
+}
+
+# udp_recv_send FROM TO IP PORT N [udp-recv options...]: start a receiver
+# for N datagrams in namespace TO, send N from namespace FROM to IP:PORT,
+# print the receiver's report ("received=... bytes=... [tos=...]"). The
+# receiver gives up 2 s after the last datagram (or without any). Uses
+# the caller's temporary directory $T.
+udp_recv_send() {
+	local from=$1 to=$2 ip=$3 port=$4 n=$5 pid
+	shift 5
+	rm -f "${T:?}/udp.ready"
+	nsx "$to" "${NETTOOL[@]}" udp-recv "$port" --ready "$T/udp.ready" \
+		--wait 2 --idle 0.5 --max "$n" "$@" >"$T/udp.out" &
+	pid=$!
+	if ! wait_file "$T/udp.ready"; then
+		kill "$pid"
+		return 1
+	fi
+	nsx "$from" "${NETTOOL[@]}" udp-send "$ip" "$port" "$n" --size 32 \
+		${UDP_SEND_TOS:+--tos "$UDP_SEND_TOS"} >/dev/null
+	wait "$pid"
+	cat "$T/udp.out"
+}
+
+# udp_count FROM TO IP PORT N: how many of N datagrams arrived.
+udp_count() { kvn received "$(udp_recv_send "$@")"; }

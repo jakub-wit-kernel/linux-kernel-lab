@@ -26,7 +26,9 @@ command -v qemu-system-x86_64 >/dev/null || die "qemu-system-x86_64 not found"
 # CC on the command line: kbuild ignores a CC environment variable.
 make -s modules KDIR="$KDIR" ${CC:+CC="$CC"}
 # User-space tools and test programs (run inside the guest from the share).
-cmake -S . -B build >/dev/null
+# LKL_CMAKE_ARGS: extra configure options, e.g. -DLKL_LIBBPF_DIR=... for eBPF.
+read -ra cmake_args <<<"${LKL_CMAKE_ARGS:-}"
+cmake -S . -B build "${cmake_args[@]}" >/dev/null
 cmake --build build -j >/dev/null
 
 kvm_note="KVM"
@@ -39,7 +41,8 @@ echo "qemu-test: booting $KIMG with $kvm_note"
 # LKL_EXPECT_VM makes run_all.sh verify it really runs under QEMU.
 # LKL_EXPECT_DETECTORS (debug-kernel CI) makes the detector test fail
 # instead of skipping if lockdep or KASAN turn out to be missing.
+# LKL_EXPECT_BPF makes the eBPF tests fail instead of skipping.
 # LKL_QEMU_APPEND: extra kernel command line (e.g. kasan_multi_shot).
 vng --run "$KIMG" ${LKL_QEMU_APPEND:+--append "$LKL_QEMU_APPEND"} --user root --cpus 2 --memory "${LKL_QEMU_MEM:-1G}" \
 	--rwdir "$PWD" \
-	--exec "cd '$PWD' && LKL_EXPECT_VM=1 LKL_EXPECT_DETECTORS=${LKL_EXPECT_DETECTORS:-} tests/run_all.sh"
+	--exec "cd '$PWD' && LKL_EXPECT_VM=1 LKL_EXPECT_DETECTORS=${LKL_EXPECT_DETECTORS:-} LKL_EXPECT_BPF=${LKL_EXPECT_BPF:-} tests/run_all.sh"
