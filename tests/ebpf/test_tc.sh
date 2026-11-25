@@ -18,6 +18,7 @@ if ((kmaj < 6 || (kmaj == 6 && kmin < 6))); then
 fi
 
 T=$(mktemp -d)
+# shellcheck disable=SC2317 # called by the EXIT trap
 cleanup() {
 	ns_cleanup
 	bpf_umount

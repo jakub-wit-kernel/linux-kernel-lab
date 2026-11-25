@@ -21,6 +21,7 @@ if ! mountpoint -q /sys/kernel/tracing; then
 fi
 
 T=$(mktemp -d)
+# shellcheck disable=SC2317 # called by the EXIT trap
 cleanup() {
 	ns_cleanup
 	bpf_umount
