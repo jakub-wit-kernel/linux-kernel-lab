@@ -6,6 +6,11 @@ Milestones are listed when they are merged.
 
 ## [Unreleased]
 
+### Added
+- M7 (in progress): eBPF programs `xdp_filter`, `tc_dscp` and
+  `napi_hist`, the `lklbpf` loader, `scripts/build-libbpf.sh`, eBPF tests
+  and the XDP drop benchmark.
+
 ## [0.6.0] - 2026-11-24
 
 ### Added

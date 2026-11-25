@@ -26,23 +26,6 @@ nfstat() { kv "$2" "$(nsx "$1" cat /proc/net/lkl_nf)"; }
 # shellcheck disable=SC2317 # only called through check/check_fails
 nfset() { nsx "$1" bash -c "echo '$2' > /proc/net/lkl_nf"; }
 
-# udp_count FROM TO IP PORT N: send N datagrams from namespace FROM to
-# IP:PORT, received in namespace TO; prints how many arrived.
-udp_count() {
-	local pid
-	rm -f "$T/ready"
-	nsx "$2" "${NETTOOL[@]}" udp-recv "$4" --ready "$T/ready" --wait 2 \
-		--idle 0.5 --max "$5" >"$T/out" &
-	pid=$!
-	if ! wait_file "$T/ready"; then
-		kill "$pid"
-		return 1
-	fi
-	nsx "$1" "${NETTOOL[@]}" udp-send "$3" "$4" "$5" --size 32 >/dev/null
-	wait "$pid"
-	kv received "$(cat "$T/out")"
-}
-
 check "/proc/net/lkl_nf in the initial namespace" test -r /proc/net/lkl_nf
 check "lkl_vnet pair between $NS0 and $NS1" pair_into_ns lklvnet0 lklvnet1
 check "$NS1 has its own /proc/net/lkl_nf" nsx $NS1 test -w /proc/net/lkl_nf

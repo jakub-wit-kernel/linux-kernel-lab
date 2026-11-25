@@ -52,6 +52,86 @@ target_link_libraries(lkl_events_test PRIVATE Threads::Threads)
 add_executable(lkl_mmap_test tests/memory/lkl_mmap_test.c)
 target_include_directories(lkl_mmap_test PRIVATE tests/lib)
 
+# --- M7: eBPF ------------------------------------------------------------------------
+# Needs clang (BPF target) and libbpf >= 1.0: a build from
+# scripts/build-libbpf.sh (-DLKL_LIBBPF_DIR=...) or a distro package found
+# with pkg-config. Without them the rest of the build goes on, and the eBPF
+# tests skip with the reason.
+set(LKL_LIBBPF_DIR "" CACHE PATH "Prefix of a static libbpf build (default: pkg-config)")
+option(LKL_BPF "Build the eBPF programs and lklbpf when clang and libbpf are found" ON)
+
+set(LKL_BPF_ENABLED OFF)
+if(LKL_BPF)
+  set(_bpf_why "")
+  find_program(LKL_BPF_CLANG NAMES clang)
+  if(LKL_LIBBPF_DIR)
+    if(EXISTS ${LKL_LIBBPF_DIR}/lib/libbpf.a AND
+       EXISTS ${LKL_LIBBPF_DIR}/include/bpf/libbpf.h)
+      set(LKL_LIBBPF_INCLUDE ${LKL_LIBBPF_DIR}/include)
+      set(LKL_LIBBPF_LIBS ${LKL_LIBBPF_DIR}/lib/libbpf.a elf z)
+    else()
+      set(_bpf_why "no lib/libbpf.a and include/bpf/libbpf.h under ${LKL_LIBBPF_DIR}")
+    endif()
+  else()
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+      pkg_check_modules(LIBBPF QUIET libbpf>=1.0)
+    endif()
+    if(LIBBPF_FOUND)
+      set(LKL_LIBBPF_INCLUDE ${LIBBPF_INCLUDE_DIRS})
+      set(LKL_LIBBPF_LIBS ${LIBBPF_LINK_LIBRARIES})
+    else()
+      set(_bpf_why "libbpf >= 1.0 not found by pkg-config and LKL_LIBBPF_DIR not set")
+    endif()
+  endif()
+  if(NOT LKL_BPF_CLANG)
+    set(_bpf_why "clang not found")
+  endif()
+  if(_bpf_why)
+    message(STATUS "eBPF: skipped: ${_bpf_why} (see ebpf/README.md)")
+  else()
+    set(LKL_BPF_ENABLED ON)
+    message(STATUS "eBPF: enabled (clang ${LKL_BPF_CLANG}, libbpf ${LKL_LIBBPF_LIBS})")
+  endif()
+endif()
+
+if(LKL_BPF_ENABLED)
+  set(_bpf_flags -g -O2 -target bpf -Wall -Werror
+      -I${PROJECT_SOURCE_DIR}/ebpf/include)
+  foreach(_d ${LKL_LIBBPF_INCLUDE})
+    list(APPEND _bpf_flags -I${_d})
+  endforeach()
+  # -target bpf does not search the multiarch directory (asm/types.h).
+  # CMake knows it on Debian-style systems, whatever the C compiler's
+  # own triple is (gcc: x86_64-linux-gnu, clang: x86_64-pc-linux-gnu).
+  if(CMAKE_LIBRARY_ARCHITECTURE AND
+     EXISTS /usr/include/${CMAKE_LIBRARY_ARCHITECTURE})
+    list(APPEND _bpf_flags -idirafter /usr/include/${CMAKE_LIBRARY_ARCHITECTURE})
+  endif()
+  set(_bpf_objs)
+  foreach(_p xdp_filter tc_dscp napi_hist)
+    set(_out ${CMAKE_BINARY_DIR}/ebpf/${_p}.bpf.o)
+    add_custom_command(OUTPUT ${_out}
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/ebpf
+      COMMAND ${LKL_BPF_CLANG} ${_bpf_flags}
+              -c ${PROJECT_SOURCE_DIR}/ebpf/progs/${_p}.bpf.c -o ${_out}
+      DEPENDS ebpf/progs/${_p}.bpf.c ebpf/include/lklbpf.h
+      COMMENT "BPF ${_p}.bpf.o" VERBATIM)
+    list(APPEND _bpf_objs ${_out})
+  endforeach()
+  add_custom_target(bpf-objects ALL DEPENDS ${_bpf_objs})
+
+  # Loads the objects from ebpf/ next to the executable.
+  add_executable(lklbpf ebpf/user/lklbpf.c)
+  target_include_directories(lklbpf PRIVATE ebpf/include)
+  target_include_directories(lklbpf SYSTEM PRIVATE ${LKL_LIBBPF_INCLUDE})
+  target_link_libraries(lklbpf PRIVATE ${LKL_LIBBPF_LIBS})
+  add_dependencies(lklbpf bpf-objects)
+endif()
+
+# XDP benchmark traffic generator (benchmarks/xdp/run.sh); no libbpf needed.
+add_executable(udpflood benchmarks/xdp/udpflood.c)
+
 # --- unit tests (no kernel needed) ------------------------------------------------
 enable_testing()
 add_executable(test_lklbuf_lib tests/unit/test_lklbuf_lib.c)

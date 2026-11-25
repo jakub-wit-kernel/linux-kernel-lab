@@ -44,6 +44,7 @@ older kernel would close that gap.
 | checkpatch.pl | style checks | fetched from upstream at a pinned tag by `scripts/checkpatch.sh --fetch` |
 | Python 3.8+ | `tests/lib/kmsg.py`, `tests/lib/nettool.py` | `python3` |
 | ip, ping, ethtool | networking tests (namespaces, traffic, driver counters) | `iproute2`, `iputils-ping`, `ethtool` |
+| clang, libbpf ≥ 1.0 | eBPF programs and `lklbpf` | `clang`; libbpf from `scripts/build-libbpf.sh` (needs `libelf-dev`, `zlib1g-dev`) or a distro package ≥ 1.0 |
 | shellcheck | script lint | `shellcheck` |
 | QEMU | isolated kernel testing | `qemu-system-x86` |
 | virtme-ng | boots a kernel in QEMU with the host filesystem shared | `pip install virtme-ng` |

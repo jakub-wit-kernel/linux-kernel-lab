@@ -19,20 +19,26 @@ jobs:
       - uses: actions/checkout@v4
       - name: Python helper unit tests (kmsg.py, nettool.py)
         run: python3 -m unittest discover -s tests/lib -v
-      - name: User-space build and unit tests (gcc, clang, ASan+UBSan)
+      - name: libbpf (pinned release) for the eBPF build
         run: |
+          sudo apt-get update && sudo apt-get install -y libelf-dev zlib1g-dev
+          scripts/build-libbpf.sh
+      - name: User-space and eBPF build, unit tests (gcc, clang, ASan+UBSan)
+        run: |
+          bpf=-DLKL_LIBBPF_DIR=$PWD/.tools/libbpf
           for cc in gcc clang; do
-            rm -rf b && CC=$cc cmake -S . -B b >/dev/null
+            rm -rf b && CC=$cc cmake -S . -B b "$bpf" >/dev/null
             cmake --build b -j
+            test -x b/lklbpf && ls b/ebpf/*.bpf.o
             (cd b && ctest --output-on-failure)
           done
-          rm -rf b && cmake -S . -B b -DLKL_SANITIZE=address,undefined >/dev/null
+          rm -rf b && cmake -S . -B b "$bpf" -DLKL_SANITIZE=address,undefined >/dev/null
           cmake --build b -j
           (cd b && ctest --output-on-failure)
       - name: shellcheck
         run: |
-          sudo apt-get update && sudo apt-get install -y shellcheck
-          shellcheck -x -P SCRIPTDIR scripts/*.sh tests/run_all.sh tests/modules/*.sh tests/drivers/*.sh tests/concurrency/*.sh tests/memory/*.sh tests/networking/*.sh tests/debug/*.sh tests/lib/common.sh tests/lib/net.sh
+          sudo apt-get install -y shellcheck
+          shellcheck -x -P SCRIPTDIR scripts/*.sh tests/run_all.sh tests/modules/*.sh tests/drivers/*.sh tests/concurrency/*.sh tests/memory/*.sh tests/networking/*.sh tests/ebpf/*.sh tests/debug/*.sh tests/lib/common.sh tests/lib/net.sh tests/lib/bpf.sh benchmarks/xdp/run.sh
 
   build:
     name: Build and static analysis (${{ matrix.os }})
@@ -74,7 +80,7 @@ jobs:
   test-host:
     name: Module tests on runner kernel (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -85,13 +91,20 @@ jobs:
         run: |
           KCC=$(scripts/kernel-cc.sh)
           sudo apt-get update
-          sudo apt-get install -y "linux-headers-$(uname -r)" "$KCC" ethtool
+          sudo apt-get install -y "linux-headers-$(uname -r)" "$KCC" ethtool \
+            libelf-dev zlib1g-dev
           echo "KCC=$KCC" >> "$GITHUB_ENV"
       - run: make CC="$KCC"
-      - name: Build user-space tools
-        run: cmake -S . -B build && cmake --build build -j
-      - name: Run module tests
-        run: sudo timeout 600 tests/run_all.sh
+      - name: libbpf (pinned release)
+        run: scripts/build-libbpf.sh
+      - name: Build user-space tools and eBPF programs
+        run: |
+          cmake -S . -B build -DLKL_LIBBPF_DIR="$PWD/.tools/libbpf"
+          cmake --build build -j
+      - name: Run module and eBPF tests
+        run: sudo LKL_EXPECT_BPF=1 timeout 900 tests/run_all.sh
+      - name: XDP drop benchmark (informational numbers)
+        run: sudo benchmarks/xdp/run.sh 1000000
       - name: Kernel log (on failure)
         if: failure()
         run: sudo dmesg | tail -n 200
@@ -99,7 +112,7 @@ jobs:
   test-qemu:
     name: Module tests inside QEMU (virtme-ng)
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - name: Enable KVM for the runner user
@@ -113,14 +126,20 @@ jobs:
         run: |
           KCC=$(scripts/kernel-cc.sh)
           sudo apt-get update
-          sudo apt-get install -y qemu-system-x86 "linux-headers-$(uname -r)" "$KCC" ethtool
+          sudo apt-get install -y qemu-system-x86 "linux-headers-$(uname -r)" "$KCC" ethtool \
+            libelf-dev zlib1g-dev
           pipx install virtme-ng
           echo "KCC=$KCC" >> "$GITHUB_ENV"
           sudo chmod 0644 "/boot/vmlinuz-$(uname -r)"
-      - name: Run module tests in a VM booting the runner's kernel
-        run: timeout 1500 scripts/qemu-test.sh
+      - name: libbpf (pinned release)
+        run: |
+          scripts/build-libbpf.sh
+          echo "LKL_CMAKE_ARGS=-DLKL_LIBBPF_DIR=$PWD/.tools/libbpf" >> "$GITHUB_ENV"
+      - name: Run module and eBPF tests in a VM booting the runner's kernel
+        run: timeout 2100 scripts/qemu-test.sh
         env:
           CC: ${{ env.KCC }}
+          LKL_EXPECT_BPF: "1"
 
   test-debug-kernel:
     name: Tests on a debug kernel (lockdep + KASAN + kmemleak) in QEMU

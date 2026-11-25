@@ -75,6 +75,19 @@ class LoopbackTest(unittest.TestCase):
         self.assertEqual(fields(tx.stdout)["sent"], "50")
         self.assertEqual(fields(out), {"received": "50", "bytes": "5000"})
 
+    def test_udp_reports_tos(self):
+        port = free_port(socket.SOCK_DGRAM)
+        rx = subprocess.Popen(TOOL + ["udp-recv", str(port), "--ready",
+                                      self.ready, "--max", "10", "--tos"],
+                              stdout=subprocess.PIPE, text=True)
+        wait_for(self.ready)
+        subprocess.run(TOOL + ["udp-send", "127.0.0.1", str(port), "10",
+                               "--tos", "184"], check=True,
+                       stdout=subprocess.DEVNULL)
+        out, _ = rx.communicate(timeout=10)
+        self.assertEqual(fields(out)["received"], "10")
+        self.assertEqual(fields(out)["tos"], "184:10")
+
     def test_udp_receiver_gives_up_when_nothing_comes(self):
         port = free_port(socket.SOCK_DGRAM)
         t0 = time.monotonic()

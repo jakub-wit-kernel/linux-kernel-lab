@@ -2,12 +2,13 @@
 # SPDX-License-Identifier: GPL-2.0
 """Traffic for the networking tests, standard library only.
 
-    nettool.py udp-recv PORT --ready FILE [--wait S] [--idle S] [--max N]
+    nettool.py udp-recv PORT --ready FILE [--wait S] [--idle S] [--max N] [--tos]
         Bind 0.0.0.0:PORT, create FILE once bound, count datagrams until
         --max arrived, nothing came for --wait s (before the first one)
-        or --idle s (after it). Prints "received=N bytes=B".
-    nettool.py udp-send HOST PORT COUNT [--size N]
-        Send COUNT datagrams of --size bytes. Prints "sent=N".
+        or --idle s (after it). Prints "received=N bytes=B", and with
+        --tos the IPv4 TOS bytes seen: "tos=VALUE:COUNT,...".
+    nettool.py udp-send HOST PORT COUNT [--size N] [--tos T]
+        Send COUNT datagrams of --size bytes (TOS byte T). Prints "sent=N".
     nettool.py tcp-recv PORT --ready FILE [--timeout S]
         Accept one connection and read to EOF.
         Prints "bytes=N sha256=HEX".
@@ -23,7 +24,7 @@ import hashlib
 import os
 import socket
 import sys
-from typing import Iterator, List, Optional
+from typing import Dict, Iterator, List, Optional
 
 CHUNK = 65536
 
@@ -48,28 +49,43 @@ def mark_ready(path: str) -> None:
     os.replace(path + ".tmp", path)   # appears atomically
 
 
+IP_RECVTOS = getattr(socket, "IP_RECVTOS", 13)    # Linux value
+
+
 def udp_recv(port: int, ready: str, wait: float, idle: float,
-             limit: Optional[int]) -> str:
+             limit: Optional[int], want_tos: bool = False) -> str:
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 4 << 20)
+    if want_tos:
+        s.setsockopt(socket.IPPROTO_IP, IP_RECVTOS, 1)
     s.bind(("0.0.0.0", port))
     mark_ready(ready)
     count = nbytes = 0
+    tos: Dict[int, int] = {}
     s.settimeout(wait)
     while limit is None or count < limit:
         try:
-            data = s.recv(65536)
+            data, anc, _, _ = s.recvmsg(65536, socket.CMSG_SPACE(1))
         except socket.timeout:
             break
         count += 1
         nbytes += len(data)
+        for level, kind, value in anc:
+            if level == socket.IPPROTO_IP and kind == socket.IP_TOS and value:
+                tos[value[0]] = tos.get(value[0], 0) + 1
         s.settimeout(idle)
     s.close()
-    return f"received={count} bytes={nbytes}"
+    out = f"received={count} bytes={nbytes}"
+    if want_tos:
+        out += " tos=" + ",".join(f"{v}:{n}" for v, n in sorted(tos.items()))
+    return out
 
 
-def udp_send(host: str, port: int, count: int, size: int) -> str:
+def udp_send(host: str, port: int, count: int, size: int,
+             tos: Optional[int] = None) -> str:
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    if tos is not None:
+        s.setsockopt(socket.IPPROTO_IP, socket.IP_TOS, tos)
     payload = bytes(size)
     for _ in range(count):
         s.sendto(payload, (host, port))
@@ -120,12 +136,14 @@ def main(argv: List[str]) -> int:
     p.add_argument("--wait", type=float, default=5.0)
     p.add_argument("--idle", type=float, default=1.0)
     p.add_argument("--max", type=int)
+    p.add_argument("--tos", action="store_true")
 
     p = sub.add_parser("udp-send")
     p.add_argument("host")
     p.add_argument("port", type=int)
     p.add_argument("count", type=int)
     p.add_argument("--size", type=int, default=64)
+    p.add_argument("--tos", type=int)
 
     p = sub.add_parser("tcp-recv")
     p.add_argument("port", type=int)
@@ -139,9 +157,9 @@ def main(argv: List[str]) -> int:
 
     a = ap.parse_args(argv)
     if a.cmd == "udp-recv":
-        out = udp_recv(a.port, a.ready, a.wait, a.idle, a.max)
+        out = udp_recv(a.port, a.ready, a.wait, a.idle, a.max, a.tos)
     elif a.cmd == "udp-send":
-        out = udp_send(a.host, a.port, a.count, a.size)
+        out = udp_send(a.host, a.port, a.count, a.size, a.tos)
     elif a.cmd == "tcp-recv":
         out = tcp_recv(a.port, a.ready, a.timeout)
     else:
